@@ -349,32 +349,30 @@ figcaption{margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);col
 
 .h3-sub{display:block;font-size:.74em;color:var(--md-sys-color-on-surface-variant);font-weight:400;margin-top:6px}
 
-/* 视频类：正片截图（横向，宽栏）+ 结项证书（纵向，窄栏）并排；
-   后期工程截图接在窄栏下方。窄屏回落为 正片截图 → 结项证书 → 后期工程截图 */
+/* 视频类图片排版
+   第一行：正片截图（横向，通栏）
+   第二行：结项证书（纵向） + 后期工程截图（横向，垂直居中）
+   窄屏依次堆叠：正片截图 → 结项证书 → 后期工程截图            */
+.film-shot{margin-top:clamp(24px,3vw,40px)}
+
 .film-media-row{
   display:grid;
-  grid-template-columns:70fr 30fr;
-  grid-template-areas:
-    "wide narrow"
-    "wide last";
-  gap:clamp(20px,3vw,36px);
-  align-items:start;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);
+  gap:clamp(20px,4vw,48px);
+  align-items:center;          /* 高度不同也能视觉居中，消除底部留白 */
   margin-top:clamp(24px,3vw,40px);
 }
 .film-media-row figure{display:flex;flex-direction:column;min-width:0}
-.film-media-row .fm-wide{grid-area:wide}
-.film-media-row .fm-narrow{grid-area:narrow}
-.film-media-row .fm-last{grid-area:last}
-/* 纵向证书不撑满窄栏，保持合理观感 */
-.film-media-row .fm-tall img{max-height:760px;width:auto;max-width:100%;margin:0 auto}
+/* 证书为纵向，限制高度避免过高；后期截图为横向，自然撑满其栏 */
+.film-media-row figure:first-child img{max-height:620px;width:auto;max-width:100%;margin:0 auto}
 
 @media (max-width:840px){
   .film-media-row{
     grid-template-columns:1fr;
-    grid-template-areas:"wide" "narrow" "last";
     gap:clamp(20px,4vw,32px);
+    align-items:start;
   }
-  .film-media-row .fm-tall img{max-height:none;width:100%}
+  .film-media-row figure:first-child img{max-height:none;width:100%;margin:0}
 }
 
 .poster-note{padding:4px 0}
