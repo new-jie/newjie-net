@@ -349,6 +349,44 @@ figcaption{margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);col
 
 .h3-sub{display:block;font-size:.74em;color:var(--md-sys-color-on-surface-variant);font-weight:400;margin-top:6px}
 
+/* ============================================================
+   微电影播放器
+   media-chrome 的控件样式保持官方默认，这里只控制版面尺寸，
+   不改动任何 --media-* 变量、颜色或控件外观。
+   ============================================================ */
+.film-player{display:flex;flex-direction:column;min-width:0}
+.film-player media-controller{
+  display:block;width:100%;aspect-ratio:16/9;
+}
+.film-player figcaption{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;
+  margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);
+  color:var(--md-sys-color-on-surface-variant);
+}
+.film-player figcaption a{
+  color:var(--md-sys-color-primary);
+  border-bottom:1px solid transparent;
+  transition:border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.film-player figcaption a:hover{border-bottom-color:var(--md-sys-color-primary)}
+
+/* 视频新闻：正片截图四宫格 */
+.news-stills{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(10px,1.6vw,16px);
+  margin-top:clamp(24px,3vw,36px);
+}
+.news-stills figure{margin:0}
+.news-stills figure img{
+  width:100%;aspect-ratio:16/9;object-fit:cover;
+  border-radius:var(--md-sys-shape-corner-medium);
+}
+.news-stills__cap{
+  grid-column:1 / -1;margin:4px 0 0;
+  font-size:var(--md-sys-typescale-body-small-size);
+  color:var(--md-sys-color-on-surface-variant);
+}
+
 /* 视频类图片排版
    第一行：正片截图（横向，通栏）
    第二行：结项证书（纵向） + 后期工程截图（横向，垂直居中）

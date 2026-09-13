@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="站点正在建设中">
+<meta name="theme-color" content="#F1FCF9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1513" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<title>newjie.net（建设中）</title>
+<!-- 颜色令牌与组件样式复用 portfolio 目录，与作品集共用同一套 M3 视觉 -->
+<link rel="stylesheet" href="portfolio/assets/css/tokens.css">
+<link rel="stylesheet" href="portfolio/assets/css/style.css">
+<link rel="stylesheet" href="assets/css/root.css">
+<script>
+  /* 与作品集共用同一份主题偏好，避免两页明暗不一致 */
+  document.documentElement.classList.add('js');
+  (function () {
+    try {
+      var t = localStorage.getItem('lmx-theme');
+      if (t === 'dark' || t === 'light') {
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.classList.add('theme-' + t);
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
+  })();
+</script>
+</head>
+<body>
+
+<main class="building">
+  <div class="wrap">
+    <div class="building__inner">
+
+      <div class="building__badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+      </div>
+
+      <h1 class="building__title">正在建设中</h1>
+
+      <div class="building__progress" role="progressbar" aria-label="站点建设进度"></div>
+
+    </div>
+  </div>
+</main>
+
+<script src="portfolio/assets/js/main.js"></script>
+</body>
+</html>

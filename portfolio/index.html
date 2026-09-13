@@ -9,6 +9,11 @@
 <title>刘牧欣 · 作品集</title>
 <link rel="stylesheet" href="assets/css/tokens.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<!-- 视频播放器：media-chrome + castable-video（与 show1.html 相同的 CDN 引用） -->
+<script type="module" src="https://cdn.jsdmirror.com/npm/castable-video/+esm"></script>
+<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/lang/zh-CN.js"></script>
+<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/menu/index.js"></script>
+<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/index.js"></script>
 <script>
   /* 在样式生效前套用已保存的主题，避免闪烁 */
   document.documentElement.classList.add('js');
@@ -66,7 +71,7 @@
     <div>
       <p class="eyebrow">求职作品集 · 2026</p>
       <h1 class="hero__name">刘牧欣</h1>
-      <p class="hero__role">新闻宣传</p>
+      <p class="hero__role">求职意向：运营、宣发</p>
       <p class="hero__desc">
         新闻学本科在读，具备<strong>视频创作全流程</strong>、<strong>图文排版运营</strong>与<strong>大型活动技术保障</strong>能力。
         从脚本、拍摄、剪辑调色到配音包装，独立完成多部视频作品；
@@ -81,10 +86,6 @@
         <li>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
           <a href="mailto:new_jie@outlook.com">new_jie@outlook.com</a>
-        </li>
-        <li>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
-          内蒙古 · 随时到岗
         </li>
       </ul>
 
@@ -150,9 +151,36 @@
         </p>
       </div>
 
-      <figure class="zoomable" data-full="assets/img/film-still-01.jpg" tabindex="0" role="button" aria-label="放大查看微电影正片画面">
-        <img width="960" height="540" src="assets/img/film-still-01.jpg" alt="微电影《梦遇妙音》正片画面：男主角在户外阅读手写笔记" loading="lazy">
-        <figcaption>微电影《梦遇妙音》正片画面</figcaption>
+      <figure class="film-player">
+        <media-controller>
+          <castable-video
+            playsinline crossorigin
+            slot="media"
+            src="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4"
+          ></castable-video>
+          <media-context-menu>
+            <media-context-menu-item>
+              <button invoke="copy">复制视频链接</button>
+              <input slot="copy" type="hidden" value="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4">
+            </media-context-menu-item>
+            <media-context-menu-item>
+              <a href="https://mux.com" target="_blank">Powered by Mux</a>
+            </media-context-menu-item>
+          </media-context-menu>
+          <media-control-bar>
+            <media-play-button></media-play-button>
+            <media-mute-button></media-mute-button>
+            <media-volume-range></media-volume-range>
+            <media-time-range></media-time-range>
+            <media-pip-button></media-pip-button>
+            <media-fullscreen-button></media-fullscreen-button>
+          </media-control-bar>
+        </media-controller>
+
+        <figcaption>
+          微电影《梦遇妙音》正片
+          <a href="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4" target="_blank" rel="noopener">播放器无法加载？直接打开视频 ↗</a>
+        </figcaption>
       </figure>
     </div>
 
@@ -167,12 +195,12 @@
     <div class="film-media-row reveal">
       <figure class="zoomable" data-full="assets/img/film-certificate.jpg" tabindex="0" role="button" aria-label="放大查看项目结项证书">
         <img width="873" height="1280" src="assets/thumb/film-certificate.jpg" alt="北方民族大学国家级大学生创新创业训练计划项目结项证书" loading="lazy">
-        <figcaption>项目结项证书 · 国家级创新训练项目</figcaption>
+        <figcaption>项目结项证书</figcaption>
       </figure>
 
       <figure class="zoomable" data-full="assets/img/film-postproduction.jpg" tabindex="0" role="button" aria-label="放大查看后期工程截图">
         <img width="800" height="474" src="assets/thumb/film-postproduction.jpg" alt="《梦遇妙音》后期工程截图：Premiere 剪辑、DaVinci 调色、Audition 混音、After Effects 特效四个工作界面" loading="lazy">
-        <figcaption>后期工程截图 · 剪辑 / 调色 / 混音 / 特效</figcaption>
+        <figcaption>后期工程截图</figcaption>
       </figure>
     </div>
   </div>
@@ -198,10 +226,9 @@
           <img width="754" height="1192" src="assets/thumb/aigc-shijingnx.jpg" alt="“黄河云视”平台发布的《跟着诗词游宁夏》视频页面截图" loading="lazy">
         </figure>
         <div class="aigc-card__body">
-          <p class="aigc-card__meta">诗画宁夏 · 山、河、沙、月“诗燃”</p>
+          <p class="aigc-card__meta">诗画宁夏</p>
           <h3>跟着诗词游宁夏</h3>
           <p>以诗词为线索串联宁夏山川风物，用 AI 生成画面重构“千年文脉”的视觉想象。</p>
-          <p class="aigc-card__src">宁夏广播电视台 AIGC 工作室全程指导</p>
           <a class="btn btn--text aigc-card__link" href="https://web.cmc.nxhhy.cn/nxrmtpt_html/nxhhy/sy/AIsjknx/1979460.shtml" target="_blank" rel="noopener">
             <span>黄河云视 观看</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
@@ -214,7 +241,7 @@
           <img width="765" height="1192" src="assets/thumb/aigc-xiaoman.jpg" alt="“黄河云视”平台发布的《小满节气》视频页面截图" loading="lazy">
         </figure>
         <div class="aigc-card__body">
-          <p class="aigc-card__meta">二十四节气中国神话系列 · “小满”</p>
+          <p class="aigc-card__meta">二十四节气中国神话系列</p>
           <h3>小满节气</h3>
           <p>桑茂蚕生处，丝织绕梦长。用 AIGC 呈现节气背后的神话传说，探索传统文化的当代转译。</p>
           <p class="aigc-card__src">获国家民委民族传播品牌“道中华”视频号转载</p>
@@ -263,13 +290,58 @@
     <header class="section-head reveal">
       <p class="eyebrow">03 · NEWS</p>
       <h2 class="t-headline-l">视频新闻作品</h2>
-      <p>拍摄 · 剪辑 · 配音</p>
+        <p style="color:var(--md-sys-color-on-surface-variant)">
+          我参与了该视频新闻的出镜报道、拍摄、剪辑、配音和图文包装工作。
+        </p>
     </header>
 
-    <figure class="zoomable reveal" data-full="assets/img/news-video.jpg" tabindex="0" role="button" aria-label="放大查看视频新闻作品">
-      <img width="960" height="540" src="assets/img/news-video.jpg" alt="视频新闻作品截图：采访拍摄现场与出镜记者连线画面" loading="lazy">
-      <figcaption>我参与了该视频新闻的出镜报道、拍摄、剪辑、配音和图文包装工作</figcaption>
-    </figure>
+      <figure class="film-player">
+        <media-controller>
+          <castable-video
+            playsinline crossorigin
+            slot="media"
+            src="https://r2.newjie.net/videos/portfolio/plc.mp4"
+          ></castable-video>
+          <media-context-menu>
+            <media-context-menu-item>
+              <button invoke="copy">复制视频链接</button>
+              <input slot="copy" type="hidden" value="https://r2.newjie.net/videos/portfolio/plc.mp4">
+            </media-context-menu-item>
+            <media-context-menu-item>
+              <a href="https://mux.com" target="_blank">Powered by Mux</a>
+            </media-context-menu-item>
+          </media-context-menu>
+          <media-control-bar>
+            <media-play-button></media-play-button>
+            <media-mute-button></media-mute-button>
+            <media-volume-range></media-volume-range>
+            <media-time-range></media-time-range>
+            <media-pip-button></media-pip-button>
+            <media-fullscreen-button></media-fullscreen-button>
+          </media-control-bar>
+        </media-controller>
+
+        <figcaption>
+          视频新闻成片
+          <a href="https://r2.newjie.net/videos/portfolio/plc.mp4" target="_blank" rel="noopener">播放器无法加载？直接打开视频 ↗</a>
+        </figcaption>
+      </figure>
+
+      <div class="news-stills reveal">
+        <figure class="zoomable" data-full="assets/img/news-still-01.jpg" tabindex="0" role="button" aria-label="放大查看截图：展览现场外景">
+          <img width="1600" height="900" src="assets/thumb/news-still-01.jpg" alt="视频新闻截图：盘龙城遗址博物院“江流万古”长江流域古代文明瑰宝展外景" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-02.jpg" tabindex="0" role="button" aria-label="放大查看截图：出镜报道">
+          <img width="1600" height="900" src="assets/thumb/news-still-02.jpg" alt="视频新闻截图：记者刘牧欣在展厅出镜报道" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-03.jpg" tabindex="0" role="button" aria-label="放大查看截图：展品特写">
+          <img width="1600" height="900" src="assets/thumb/news-still-03.jpg" alt="视频新闻截图：展厅内青铜面具展品特写" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-04.jpg" tabindex="0" role="button" aria-label="放大查看截图：现场采访">
+          <img width="1600" height="900" src="assets/thumb/news-still-04.jpg" alt="视频新闻截图：记者在展厅内采访观众" loading="lazy">
+        </figure>
+        <p class="news-stills__cap">正片截图</p>
+      </div>
   </div>
 </section>
 
