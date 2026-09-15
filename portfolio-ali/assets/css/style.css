@@ -760,11 +760,63 @@ figcaption{margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);col
 }
 
 @media print{
+  /* ---------- 版面：压缩内外边距，让内容填满每一页 ---------- */
   .top-app-bar,.scrim,.hero__actions,.cta-band__actions,.skip-link,.nav-toggle{display:none!important}
-  body{background:#fff}
-  .section{padding:18px 0;break-inside:avoid}
+  body{background:#fff;font-size:12.5px}
+  .section{padding:6px 0}
+  .section-head{margin-bottom:10px}
+  .block-title{margin:10px 0 8px}
+  .hero{padding:0 0 6px}
+  .footer{padding:10px 0 0}
+  .divider{margin:6px 0}
+  .card-grid,.skill-grid,.cert-grid,.prac-certs,.mp-grid,.media-grid{gap:8px!important}
+  .card--outlined,.skill-card{padding:12px!important}
+
+  /* 分页策略：
+     小块自身不被切断；容器允许断开以便填满剩余空间。
+     实测：把容器整体设成不可切断，会让它被整块推到下一页，
+     在上一页尾部留下半页空白。 */
+  .card,.tl-item,.prac,.video-list li,figure{break-inside:avoid}
+  .cert-grid,.photo-block,.card-grid,.media-grid,.mp-grid,.prac-certs,.skill-grid,
+  .film-media-row,.split{break-inside:auto}
+  .section-head,.block-title,h1,h2,h3,h4{break-after:avoid}
+  p{orphans:3;widows:3}
+
+  /* ---------- 图片：用视口单位限高（打印时 1vh = 页高的 1%） ----------
+     纸型 A4 横向，页高约 742px。注意 vh 是相对页高的：
+     横版页高比竖版矮（742 vs 1047），所以要写更大的百分比，
+     才能得到与竖版相同的像素高度，否则图会偏小、区块更容易溢出到下一页。 */
+  .film-shot img{max-height:58vh!important;width:auto!important;max-width:100%!important;margin:0 auto!important}
+  .photo-block figure img{max-height:56vh!important;width:auto!important;max-width:100%!important;margin:0 auto!important}
+  .film-media-row figure img,
+  .cert-grid figure img,
+  .prac-certs figure img{max-height:58vh!important;width:auto!important;max-width:100%!important;margin:0 auto!important}
+  .mp-grid figure img,.media-grid figure img{max-height:46vh!important}
+  .aigc-card figure img{max-height:42vh!important}
+  .film-player [data-shaka-player-container]{display:none!important}
+
+  /* ---------- 纸面上统一改为紧凑排布 ----------
+     对比导出结果发现：用了紧凑网格的页（AIGC 卡片、公众号截图）填充率能到 80~90%，
+     而"一张大图配半页空白"的页（视频类、摄影、证书）只有 30~50%。
+     所以纸面上把这类大图也改成并排或限高，向紧凑那一侧看齐。
+     横版横向更宽，卡片可以放到三列。 */
+  .card-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .skill-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  /* 摄影作品：两组并排 */
+  .photo-block{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+               gap:12px!important;align-items:start}
+  .photo-block > *{grid-column:1 / -1}
+  .photo-block figure{margin:0}
+  .cert-grid figure img,.prac-certs figure img{max-height:56vh!important}
+  .prac-certs{margin-top:10px!important}
+
+  /* ---------- 颜色 ---------- */
   .section--tonal{background:#fff}
   .js .reveal{opacity:1!important;transform:none!important}
   .card,.aside-card{box-shadow:inset 0 0 0 1px #ccc!important}
-  a[href^="http"]::after{content:" (" attr(href) ")";font-size:8pt;color:#666}
+
+  /* 外链在纸面上直接显示地址 */
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:8pt;color:#666;word-break:break-all}
+  /* 卡片内本就很长的链接不再重复展开，避免撑破版面 */
+  .link-list a[href^="http"]::after{content:""}
 }
