@@ -13,23 +13,43 @@
 <script src="../vendor/shaka-player/dist/shaka-player.ui.js"></script>
 <link rel="stylesheet" href="../vendor/shaka-player/dist/controls.css">
 <script>
-  // 界面语言设为中文。官方中文包不随主库下发，需在 UI 建好之前注入，
-  // 否则首帧会先闪一下英文。
+  // 界面语言设为中文。官方中文包不随主库下发，需要单独加载一份对照表。
   window.zhLocale = fetch('../vendor/shaka-player/ui/locales/zh.json')
     .then(function (res) { return res.json(); })
     .then(function (json) { return new Map(Object.entries(json)); });
 
-  // 页面加载时 Shaka 会自动为这些元素建好 UI，这里只负责注入中文。
-  // 弹窗里的播放器是运行时才建的，Shaka 不会自动接管，
-  // 由下面的 initPlayer() 手动创建 —— 用的是官方 UI 库文档里的写法。
-  document.addEventListener('shaka-ui-loaded', function (event) {
-    var video = event.target;
+  // 对一个已经建好 UI 的播放器做两件事：改配置 + 注入中文。
+  //
+  // 为什么要改配置：Shaka 在移动端会把下面两个值覆盖成 true（见 ui/ui.js
+  // 里 isMobile() 那段），于是链条变成——
+  //   点 A 全屏 → 强制锁横屏 → screen.orientation 触发 change →
+  //   页面上每个播放器各自注册的监听器都收到 → 凡是已加载过（readyState > 0）
+  //   的播放器都自动进入全屏 → 表现为"点一个，好几个一起全屏"。
+  // 电脑上不会旋转屏幕，所以只有手机上会出现。两个都关掉即断掉这条链。
+  function setupPlayer(video) {
     if (!video || !video.ui) return;
+    var ui = video.ui;
+
+    ui.configure({
+      // 全屏目标钉死为这个播放器自己的容器
+      fullScreenElement: ui.getControls().getVideoContainer(),
+      enableFullscreenOnRotation: false,   // 关掉"旋转到横屏自动全屏"
+      forceLandscapeOnFullscreen: false    // 关掉"全屏时强制锁横屏"
+    });
+
     window.zhLocale.then(function (table) {
-      var localization = video.ui.getControls().getLocalization();
+      var localization = ui.getControls().getLocalization();
       localization.insert('zh', table);
       localization.changeLocale(['zh', 'zh-CN', 'en']);
     });
+  }
+
+  // 注意：shaka-ui-loaded 是派发在 document 上的，event.target 就是 document，
+  // 不是 video 元素（见 ui/ui.js 的 dispatchLoadedEvent_）。所以不能从
+  // event.target 取播放器，必须自己去页面上找。
+  document.addEventListener('shaka-ui-loaded', function () {
+    Array.prototype.forEach.call(
+      document.querySelectorAll('[data-shaka-player]'), setupPlayer);
   });
 </script>
 <script>
@@ -726,6 +746,9 @@
       player = controls.getPlayer();
       player.addEventListener('error', onPlayerErrorEvent);
       controls.addEventListener('error', onUIErrorEvent);
+
+      // 弹窗播放器也要套用同样的配置和中文（setupPlayer 在 <head> 里定义）
+      setupPlayer(video);
     }
 
     function initFailed() {
@@ -740,11 +763,14 @@
     document.addEventListener('shaka-ui-load-failed', initFailed);
 
     function close() {
-      // 全屏状态下先把全屏退掉，再关弹窗
-      if (document.fullscreenElement) {
+      // 全屏状态下先把全屏退掉，再关弹窗。
+      // 三种情况都要处理：标准 API、iOS 的 webkit 文档全屏、iOS 的视频原生全屏。
+      if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen();
-      } else if (document.webkitFullscreenElement) {
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
+      } else if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
       }
 
       modal.classList.remove('open');
