@@ -9,11 +9,9 @@
 <title>刘牧欣 · 作品集</title>
 <link rel="stylesheet" href="assets/css/tokens.css">
 <link rel="stylesheet" href="assets/css/style.css">
-<!-- 视频播放器：media-chrome + castable-video（与 show1.html 相同的 CDN 引用） -->
-<script type="module" src="https://cdn.jsdmirror.com/npm/castable-video/+esm"></script>
-<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/lang/zh-CN.js"></script>
-<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/menu/index.js"></script>
-<script type="module" src="https://cdn.jsdmirror.com/npm/media-chrome@4/dist/index.js"></script>
+<!-- 视频播放器：Shaka Player 5.2.10，站点内置副本，不依赖 CDN -->
+<script src="../vendor/shaka-player/dist/shaka-player.ui.js"></script>
+<link rel="stylesheet" href="../vendor/shaka-player/dist/controls.modern.css">
 <script>
   /* 在样式生效前套用已保存的主题，避免闪烁 */
   document.documentElement.classList.add('js');
@@ -152,30 +150,8 @@
       </div>
 
       <figure class="film-player">
-        <media-controller>
-          <castable-video
-            playsinline crossorigin
-            slot="media"
-            src="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4"
-          ></castable-video>
-          <media-context-menu>
-            <media-context-menu-item>
-              <button invoke="copy">复制视频链接</button>
-              <input slot="copy" type="hidden" value="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4">
-            </media-context-menu-item>
-            <media-context-menu-item>
-              <a href="https://mux.com" target="_blank">Powered by Mux</a>
-            </media-context-menu-item>
-          </media-context-menu>
-          <media-control-bar>
-            <media-play-button></media-play-button>
-            <media-mute-button></media-mute-button>
-            <media-volume-range></media-volume-range>
-            <media-time-range></media-time-range>
-            <media-pip-button></media-pip-button>
-            <media-fullscreen-button></media-fullscreen-button>
-          </media-control-bar>
-        </media-controller>
+        <!-- 播放器由 assets/js/player.js 创建，见文件内 filmContainer -->
+        <div id="filmContainer"></div>
 
         <figcaption>
           微电影《梦遇妙音》正片
@@ -214,6 +190,52 @@
       <h2 class="t-headline-l">AIGC 视频作品</h2>
       <p>人工智能工具辅助创作 · 3 部获省级融媒体平台录用</p>
     </header>
+
+    <!-- AIGC 成片列表：点击任意一行弹出播放器
+         每行只需填 data-src（视频链接）；名称与体积直接改行内文字 -->
+    <ul class="video-list reveal">
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/shici.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">跟着诗词游宁夏</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/xiaoman.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">小满节气.mp4</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/saiche.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">赛车活动.mp4</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+    </ul>
 
     <p class="reveal" style="max-width:62ch;color:var(--md-sys-color-on-surface-variant)">
       在 AIGC 视频技术快速兴起的背景下，我运用 AI 工具完成<strong>脚本撰写</strong>与<strong>画面生成</strong>，
@@ -296,30 +318,8 @@
     </header>
 
       <figure class="film-player">
-        <media-controller>
-          <castable-video
-            playsinline crossorigin
-            slot="media"
-            src="https://r2.newjie.net/videos/portfolio/plc.mp4"
-          ></castable-video>
-          <media-context-menu>
-            <media-context-menu-item>
-              <button invoke="copy">复制视频链接</button>
-              <input slot="copy" type="hidden" value="https://r2.newjie.net/videos/portfolio/plc.mp4">
-            </media-context-menu-item>
-            <media-context-menu-item>
-              <a href="https://mux.com" target="_blank">Powered by Mux</a>
-            </media-context-menu-item>
-          </media-context-menu>
-          <media-control-bar>
-            <media-play-button></media-play-button>
-            <media-mute-button></media-mute-button>
-            <media-volume-range></media-volume-range>
-            <media-time-range></media-time-range>
-            <media-pip-button></media-pip-button>
-            <media-fullscreen-button></media-fullscreen-button>
-          </media-control-bar>
-        </media-controller>
+        <!-- 播放器由 assets/js/player.js 创建，见文件内 newsContainer -->
+        <div id="newsContainer"></div>
 
         <figcaption>
           视频新闻成片
@@ -648,6 +648,22 @@
   </div>
 </div>
 
+<!-- ══════════ AIGC 视频播放对话框 ══════════ -->
+<div class="scrim" id="videoModal" role="dialog" aria-modal="true" aria-label="视频播放" hidden>
+  <div class="dialog dialog--video">
+    <div class="video-modal__head">
+      <p class="video-modal__title" id="videoModalTitle"></p>
+      <button class="icon-btn video-modal__close" id="videoModalClose" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <!-- 播放器由 assets/js/player.js 在弹窗打开时动态创建，关闭时销毁 -->
+    <div class="video-modal__stage" id="videoModalStage"></div>
+    <p class="video-modal__hint" id="videoModalHint" hidden>视频加载失败，请检查链接</p>
+  </div>
+</div>
+
 <script src="assets/js/main.js"></script>
+<script src="assets/js/player.js"></script>
 </body>
 </html>
