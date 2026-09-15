@@ -350,21 +350,14 @@ figcaption{margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);col
 .h3-sub{display:block;font-size:.74em;color:var(--md-sys-color-on-surface-variant);font-weight:400;margin-top:6px}
 
 /* ============================================================
-   微电影播放器（Shaka Player，库与语言包均为站点内置）
-   只控制版面尺寸与圆角，不改动 Shaka 控件的视觉样式；
-   进度条等下发给 Shaka 默认配色。
+   视频播放器（Shaka Player）
+   只规定播放器尺寸，其余交给 Shaka 默认样式
    ============================================================ */
 .film-player{display:flex;flex-direction:column;min-width:0}
 .film-player [data-shaka-player-container]{
-  position:relative;
-  display:block;
-  width:100%;
-  aspect-ratio:16/9;
-  border-radius:var(--md-sys-shape-corner-medium);
-  overflow:hidden;
-  background:#000;
+  width:100%;aspect-ratio:16/9;
+  background:#000;border-radius:var(--md-sys-shape-corner-medium);overflow:hidden;
 }
-.film-player video{width:100%;height:100%;display:block}
 
 .film-player figcaption{
   display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;
@@ -377,8 +370,6 @@ figcaption{margin-top:10px;font-size:var(--md-sys-typescale-body-small-size);col
   transition:border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
 }
 .film-player figcaption a:hover{border-bottom-color:var(--md-sys-color-primary)}
-/* 视频加载失败时标题行转为错误色，便于一眼发现播放器没起来 */
-.film-player.is-player-error figcaption{color:var(--md-sys-color-error)}
 
 /* 视频新闻：正片截图四宫格 */
 .news-stills{
