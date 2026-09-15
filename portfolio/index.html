@@ -681,8 +681,12 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
       </button>
     </div>
-    <!-- 播放器容器；video 由脚本在点击列表行时创建 -->
-    <div class="video-modal__stage" id="videoModalStage" data-shaka-player-container></div>
+    <!-- 与页面上其它播放器同一套声明式写法。
+         video 刻意不写 src：Shaka 会接管它并建好控件，但不会去加载任何东西，
+         等点击列表行时再调用 player.load()。 -->
+    <div class="video-modal__stage" id="videoModalStage" data-shaka-player-container>
+      <video id="modalVideo" data-shaka-player playsinline crossorigin></video>
+    </div>
     <p class="video-modal__hint" id="videoModalHint" hidden>视频加载失败，请检查链接</p>
   </div>
 </div>
@@ -692,7 +696,7 @@
   // AIGC 成片列表：点击一行 → 打开弹窗并播放
   (function () {
     var modal = document.getElementById('videoModal');
-    var stage = document.getElementById('videoModalStage');
+    var video = document.getElementById('modalVideo');
     var title = document.getElementById('videoModalTitle');
     var hint = document.getElementById('videoModalHint');
     var closeBtn = document.getElementById('videoModalClose');
@@ -710,29 +714,71 @@
       onPlayerError(errorEvent.detail);
     }
 
-    // 弹窗里的播放器是运行时才插入的，Shaka 不会自动接管，
-    // 需要手动创建 —— 写法同官方 UI 库文档
-    async function initPlayer(video, uri) {
+    // 弹窗里的 video 和页面其它播放器一样是声明式的，Shaka 会在页面加载时
+    // 自动接管它（因为没写 src，所以不会预先加载任何内容）。
+    // 这里只等它就绪，拿到 player 备用，不手动创建、也不销毁。
+    var player = null;
+
+    function initPlayer() {
       var ui = video['ui'];
-      var player;
-
-      if (ui) {
-        // Shaka 已经自动建好了
-        player = ui.getControls().getPlayer();
-      } else {
-        // 运行时插入的视频需要手动建
-        player = new shaka.Player();
-        await player.attach(video);
-        ui = new shaka.ui.Overlay(player, stage, video);
-      }
-
       var controls = ui.getControls();
 
-      window.player = player;
-      window.ui = ui;
-
+      player = controls.getPlayer();
       player.addEventListener('error', onPlayerErrorEvent);
       controls.addEventListener('error', onUIErrorEvent);
+    }
+
+    function initFailed() {
+      console.error('Unable to load the UI library!');
+      hint.hidden = false;
+    }
+
+    // Shaka 初始化完成前可能就被点击了，先注册监听兜底
+    document.addEventListener('shaka-ui-loaded', function () {
+      if (!player) initPlayer();
+    });
+    document.addEventListener('shaka-ui-load-failed', initFailed);
+
+    function close() {
+      // 全屏状态下先把全屏退掉，再关弹窗
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else if (document.webkitFullscreenElement) {
+        document.webkitExitFullscreen();
+      }
+
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(function () {
+        modal.hidden = true;
+        // 同一个播放器反复使用，不销毁。只是回到片头，下次打开重新播。
+        if (player) {
+          player.pause();
+          video.currentTime = 0;
+        }
+      }, 280);
+    }
+
+    function open(row) {
+      title.textContent = row.querySelector('.video-row__name').textContent;
+      hint.hidden = true;
+
+      modal.hidden = false;
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+
+      load(row.getAttribute('data-src'));
+    }
+
+    async function load(uri) {
+      // 极端情况下 Shaka 还没就绪
+      if (!player) {
+        await new Promise(function (resolve) {
+          document.addEventListener('shaka-ui-loaded', resolve, { once: true });
+        });
+        initPlayer();
+      }
 
       try {
         await player.load(uri);
@@ -742,39 +788,8 @@
       }
     }
 
-    function initFailed() {
-      console.error('Unable to load the UI library!');
-      hint.hidden = false;
-    }
-
-    function close() {
-      modal.classList.remove('open');
-      document.body.style.overflow = '';
-      setTimeout(function () {
-        modal.hidden = true;
-        stage.innerHTML = '';   // 移除播放器，下次打开从头播
-      }, 280);
-    }
-
     Array.prototype.forEach.call(document.querySelectorAll('.video-row'), function (row) {
-      row.addEventListener('click', function () {
-        title.textContent = row.querySelector('.video-row__name').textContent;
-        hint.hidden = true;
-        stage.innerHTML = '';
-
-        // 与页面上其它播放器同一套写法：容器 + 带 data 属性的 video
-        stage.innerHTML =
-          '<video data-shaka-player playsinline crossorigin src="' +
-          row.getAttribute('data-src') + '"></video>';
-
-        modal.hidden = false;
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        closeBtn.focus();
-
-        var video = stage.querySelector('video');
-        initPlayer(video, video.getAttribute('src'));
-      });
+      row.addEventListener('click', function () { open(row); });
     });
 
     closeBtn.addEventListener('click', close);
