@@ -299,6 +299,11 @@ npm run deploy        # = vite build && wrangler deploy
 
 9. **npm 11 默认不执行依赖的安装脚本**，而 esbuild 与 workerd 都靠 postinstall 下载平台二进制。缺少二进制时构建会以难以定位的方式失败。`package.json` 的 `allowScripts` 字段已逐个放行，新环境如遇报错可跑 `npm install-scripts ls` 查看被拦截项。
 
+10. **不要在 `src/app.html` 的任何位置写出 SvelteKit 占位符的字面写法，注释里也不行。**
+    SvelteKit 把整个 `app.html` 塞进一个 JS 模板字符串，然后对占位符做**全局字符串替换，不看上下文**（见 `@sveltejs/kit/src/core/sync/write_server.js`）。所以在注释里写一句「`%sveltekit.head%` 是占位符，不要改动」，那句注释里的占位符也会被替换，替换文本带引号，会撑破模板字符串，把注释后半截当成正文输出到**每个页面**顶部。
+
+    这个 bug 只在 `npm run build` 的产物里出现，`npm run dev` 走另一条路径，本地开发看不到——所以它一直潜伏到部署前才被发现。需要引用占位符时请用描述性说法（「head 占位符」），不要写百分号形式。
+
 ---
 
 ## License
