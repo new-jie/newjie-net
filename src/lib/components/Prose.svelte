@@ -233,12 +233,26 @@
 
 	.prose :global(img) {
 		max-width: 100%;
+		/* 用 max-height 而不是只靠 width 约束：竖幅原图（手机竖拍、单反竖构图）
+		   只设 max-width 时会撑满整个视口高度，读者要滚很久才能看到下一张。
+		   配合 width:auto 保持原始宽高比，object-fit 防止被拉伸。 */
+		max-height: 85vh;
+		width: auto;
 		height: auto;
+		object-fit: contain;
 		border-radius: var(--m3-shape-medium);
+	}
+
+	/* WordPress 图块带的内联尺寸（style="width:840px"）在窄屏上会溢出，
+	   这里让图片容器自己收缩。!important 是因为内联样式优先级更高。 */
+	.prose :global(figure img[style]) {
+		max-width: 100% !important;
 	}
 
 	.prose :global(figure) {
 		margin: 1.5em 0;
+		display: flex;
+		justify-content: center;
 	}
 
 	.prose :global(figcaption) {
