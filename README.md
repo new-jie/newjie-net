@@ -216,6 +216,10 @@ npm run deploy        # = vite build && wrangler deploy
 
 7. **`import.meta.glob` 的 `?raw` 取源码、默认导出取组件**，两者路径 key 相同，别把 key 写错成相对路径（见第 1 条）。
 
+8. **不要在"能跑的工作区"里判断构建是否健康。** `src/lib/format.ts` 用了 `process.env`，在本机 `svelte-check` 通过只是因为 esbuild 的类型间接提供了 `process` 声明；`npm ci` 的全新检出会直接报 `Cannot find name 'process'`。已显式加入 `@types/node`。改动构建相关代码后，建议用 `npm ci` 在干净目录验证一次。
+
+9. **npm 11 默认不执行依赖的安装脚本**，而 esbuild 与 workerd 都靠 postinstall 下载平台二进制。缺少二进制时构建会以难以定位的方式失败。`package.json` 的 `allowScripts` 字段已逐个放行，新环境如遇报错可跑 `npm install-scripts ls` 查看被拦截项。
+
 ---
 
 ## License
