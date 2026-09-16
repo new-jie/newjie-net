@@ -1,0 +1,178 @@
+{
+ "film-still-01": {
+  "src": "p01_x65.jpeg",
+  "w": 960,
+  "h": 540,
+  "full": 70310,
+  "thumb": 53784,
+  "ratio": 1.7778
+ },
+ "film-poster-grid": {
+  "src": "p02_x71.png",
+  "w": 1280,
+  "h": 523,
+  "full": 156122,
+  "thumb": 58185,
+  "ratio": 2.4474
+ },
+ "film-certificate": {
+  "src": "p03_x74.png",
+  "w": 873,
+  "h": 1280,
+  "full": 233291,
+  "thumb": 156611,
+  "ratio": 0.682
+ },
+ "film-postproduction": {
+  "src": "p04_x78.png",
+  "w": 1280,
+  "h": 759,
+  "full": 193843,
+  "thumb": 71661,
+  "ratio": 1.6864
+ },
+ "aigc-shijingnx": {
+  "src": "p05_x94.png",
+  "w": 754,
+  "h": 1192,
+  "full": 164218,
+  "thumb": 140395,
+  "ratio": 0.6326
+ },
+ "aigc-xiaoman": {
+  "src": "p05_x95.png",
+  "w": 765,
+  "h": 1192,
+  "full": 130490,
+  "thumb": 110284,
+  "ratio": 0.6418
+ },
+ "aigc-saiche": {
+  "src": "p05_x96.png",
+  "w": 747,
+  "h": 1249,
+  "full": 158505,
+  "thumb": 133252,
+  "ratio": 0.5981
+ },
+ "aigc-daozhonghua": {
+  "src": "p05_x100.jpeg",
+  "w": 607,
+  "h": 1280,
+  "full": 77427,
+  "thumb": 70815,
+  "ratio": 0.4742
+ },
+ "news-video": {
+  "src": "p06_x116.jpeg",
+  "w": 960,
+  "h": 540,
+  "full": 117746,
+  "thumb": 82235,
+  "ratio": 1.7778
+ },
+ "mp-wenchuan-01": {
+  "src": "p06_x128.png",
+  "w": 968,
+  "h": 1280,
+  "full": 214757,
+  "thumb": 135555,
+  "ratio": 0.7562
+ },
+ "mp-wenchuan-02": {
+  "src": "p06_x129.png",
+  "w": 970,
+  "h": 1280,
+  "full": 209791,
+  "thumb": 130095,
+  "ratio": 0.7578
+ },
+ "mp-wenchuan-03": {
+  "src": "p06_x130.png",
+  "w": 979,
+  "h": 1280,
+  "full": 117978,
+  "thumb": 75547,
+  "ratio": 0.7648
+ },
+ "mp-guanjie-profile": {
+  "src": "p07_x143.jpeg",
+  "w": 1200,
+  "h": 538,
+  "full": 30228,
+  "thumb": 14131,
+  "ratio": 2.2305
+ },
+ "mp-guanjie-qr": {
+  "src": "p07_x145.jpeg",
+  "w": 430,
+  "h": 430,
+  "full": 25898,
+  "thumb": 23095,
+  "ratio": 1.0
+ },
+ "photo-fengguocaoyuan": {
+  "src": "p07_x156.png",
+  "w": 1280,
+  "h": 806,
+  "full": 192222,
+  "thumb": 69288,
+  "ratio": 1.5881
+ },
+ "photo-xiyuelinghui": {
+  "src": "p08_x161.png",
+  "w": 1280,
+  "h": 1102,
+  "full": 349460,
+  "thumb": 117443,
+  "ratio": 1.1615
+ },
+ "practice-media-tour": {
+  "src": "p09_x175.png",
+  "w": 1280,
+  "h": 825,
+  "full": 239989,
+  "thumb": 94115,
+  "ratio": 1.5515
+ },
+ "practice-youth-camp": {
+  "src": "p09_x187.jpeg",
+  "w": 1920,
+  "h": 1280,
+  "full": 220412,
+  "thumb": 62210,
+  "ratio": 1.5
+ },
+ "practice-poetry": {
+  "src": "p09_x188.jpeg",
+  "w": 1280,
+  "h": 853,
+  "full": 190436,
+  "thumb": 88721,
+  "ratio": 1.5006
+ },
+ "practice-console": {
+  "src": "p09_x189.jpeg",
+  "w": 1280,
+  "h": 962,
+  "full": 230582,
+  "thumb": 108303,
+  "ratio": 1.3306
+ },
+ "practice-appointment": {
+  "src": "p10_x192.jpeg",
+  "w": 1280,
+  "h": 950,
+  "full": 177641,
+  "thumb": 86896,
+  "ratio": 1.3474
+ },
+ "practice-thanks-letter": {
+  "src": "p11_x195.png",
+  "w": 641,
+  "h": 1280,
+  "full": 114617,
+  "thumb": 97079,
+  "ratio": 0.5008
+ }
+}

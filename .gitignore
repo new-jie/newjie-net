@@ -10,3 +10,10 @@ build/
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# site/ 是作品集页面的原始来源，本身是一个独立的 git 仓库
+# （有自己的 .git、wrangler.jsonc，对应另一个叫 newjie-net 的 Worker）。
+# 纳入主仓库时会把 git 当成嵌套仓库/子模块而报错，所以忽略掉。
+# 实际部署的内容已经在 static/portfolio、static/portfolio-ali、static/vendor。
+# 本地保留该目录作为来源备份。
+site/

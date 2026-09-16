@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="刘牧欣 · 新闻宣传岗位求职作品集 — 视频创作、图文运营、摄影与大型活动技术保障">
+<meta name="theme-color" content="#F1FCF9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1513" media="(prefers-color-scheme: dark)">
+<title>刘牧欣 · 作品集</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<!-- Shaka Player UI 库 + 默认样式（站点内置副本，不依赖 CDN） -->
+<script src="../vendor/shaka-player/dist/shaka-player.ui.js"></script>
+<link rel="stylesheet" href="../vendor/shaka-player/dist/controls.css">
+<script>
+  // 界面语言设为中文。官方中文包不随主库下发，需要单独加载一份对照表。
+  window.zhLocale = fetch('../vendor/shaka-player/ui/locales/zh.json')
+    .then(function (res) { return res.json(); })
+    .then(function (json) { return new Map(Object.entries(json)); });
+
+  // 对一个已经建好 UI 的播放器做两件事：改配置 + 注入中文。
+  //
+  // 为什么要改配置：Shaka 在移动端会把下面两个值覆盖成 true（见 ui/ui.js
+  // 里 isMobile() 那段），于是链条变成——
+  //   点 A 全屏 → 强制锁横屏 → screen.orientation 触发 change →
+  //   页面上每个播放器各自注册的监听器都收到 → 凡是已加载过（readyState > 0）
+  //   的播放器都自动进入全屏 → 表现为"点一个，好几个一起全屏"。
+  // 电脑上不会旋转屏幕，所以只有手机上会出现。两个都关掉即断掉这条链。
+  function setupPlayer(video) {
+    if (!video || !video.ui) return;
+    var ui = video.ui;
+
+    ui.configure({
+      // 全屏目标钉死为这个播放器自己的容器
+      fullScreenElement: ui.getControls().getVideoContainer(),
+      enableFullscreenOnRotation: false,   // 关掉"旋转到横屏自动全屏"
+      forceLandscapeOnFullscreen: false    // 关掉"全屏时强制锁横屏"
+    });
+
+    window.zhLocale.then(function (table) {
+      var localization = ui.getControls().getLocalization();
+      localization.insert('zh', table);
+      localization.changeLocale(['zh', 'zh-CN', 'en']);
+    });
+  }
+
+  // 注意：shaka-ui-loaded 是派发在 document 上的，event.target 就是 document，
+  // 不是 video 元素（见 ui/ui.js 的 dispatchLoadedEvent_）。所以不能从
+  // event.target 取播放器，必须自己去页面上找。
+  document.addEventListener('shaka-ui-loaded', function () {
+    Array.prototype.forEach.call(
+      document.querySelectorAll('[data-shaka-player]'), setupPlayer);
+  });
+</script>
+<script>
+  /* 在样式生效前套用已保存的主题，避免闪烁 */
+  document.documentElement.classList.add('js');
+  (function () {
+    try {
+      var t = localStorage.getItem('lmx-theme');
+      if (t === 'dark' || t === 'light') {
+        document.documentElement.setAttribute('data-theme', t);
+        document.documentElement.classList.add('theme-' + t);
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
+  })();
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<!-- ══════════ Top app bar (small, on-scroll) ══════════ -->
+<header class="top-app-bar" id="topbar">
+  <div class="wrap top-app-bar__row">
+    <div class="top-app-bar__leading">
+      <span class="app-avatar" aria-hidden="true">牧欣</span>
+      <span class="app-title">
+        <b>刘牧欣</b>
+        <span>LIU MUXIN · 作品集</span>
+      </span>
+    </div>
+
+    <div class="top-app-bar__actions">
+      <nav class="m3-nav" id="nav" aria-label="页面导航">
+        <a href="#film">视频类</a>
+        <a href="#aigc">AIGC</a>
+        <a href="#article">图文类</a>
+        <a href="#practice">实践经历</a>
+      </nav>
+      <a class="btn btn--tonal" href="resume.html">完整简历</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换主题">
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" style="display:none"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5 2.39 3.42 4.08-.94-.94 4.08L21 11l-3.42 2.39.94 4.08-4.08-.94L12 21l-2.39-3.42-4.08.94.94-4.08L3 11l3.42-2.39-.94-4.08 4.08.94L12 2z"/></svg>
+      </button>
+      <button class="icon-btn nav-toggle" id="navToggle" type="button" aria-label="展开导航" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main id="main">
+
+<!-- ══════════ Hero ══════════ -->
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="eyebrow">求职作品集 · 2026</p>
+      <h1 class="hero__name">刘牧欣</h1>
+      <p class="hero__role">求职意向：运营、宣发</p>
+      <p class="hero__desc">
+        新闻学本科在读，具备<strong>视频创作全流程</strong>、<strong>图文排版运营</strong>与<strong>大型活动技术保障</strong>能力。
+        从脚本、拍摄、剪辑调色到配音包装，独立完成多部视频作品；
+        累计 3 部作品被省级融媒体平台录用，1 部获国家级平台转载。
+      </p>
+
+      <ul class="hero__contact">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.7.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.7.1.3 0 .7-.2 1l-2.3 2.1z"/></svg>
+          <a href="tel:18647385119">186-4738-5119</a>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <a href="mailto:new_jie@outlook.com">new_jie@outlook.com</a>
+        </li>
+      </ul>
+
+      <div class="hero__actions">
+        <a class="btn btn--filled btn--lg" href="#film">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <span>浏览作品</span>
+        </a>
+        <a class="btn btn--outlined btn--lg" href="resume.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span>查看完整简历</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <b>3<span>部</span></b>
+        <small>省级融媒体平台“黄河云视”录用作品</small>
+      </div>
+      <div class="stat-card">
+        <b>1<span>部</span></b>
+        <small>获国家民委“道中华”视频号转载</small>
+      </div>
+      <div class="stat-card">
+        <b>3<span>项</span></b>
+        <small>校级网络文化节获奖作品（二 / 三 / 优秀奖）</small>
+      </div>
+      <div class="stat-card">
+        <b>1<span>项</span></b>
+        <small>国家级大创项目结项成员</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══════════ 01 视频类 ══════════ -->
+<section class="section" id="film">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">01 · VIDEO</p>
+      <h2 class="t-headline-l">视频类</h2>
+    </header>
+
+    <div class="split reveal">
+      <div>
+        <p class="eyebrow">国家级大创项目</p>
+        <h3 class="t-headline-s" style="margin-bottom:16px">
+          文化遗产传播的创新性路径
+          <span class="h3-sub">——基于“妙音鸟”的网络微电影创作</span>
+        </h3>
+        <p style="color:var(--md-sys-color-on-surface-variant)">
+          项目以宁夏西夏文化遗产“妙音鸟”（迦陵频伽）为创作母题，完成网络微电影的拍摄与制作。
+          项目为<strong>国家级创新训练项目</strong>，已顺利结项。
+        </p>
+        <p style="color:var(--md-sys-color-on-surface-variant)">
+          我在项目中承担<strong>微电影后期剪辑、画面调色、AI 音乐制作与混音</strong>工作，
+          使用 Premiere Pro、DaVinci Resolve、Adobe Audition、After Effects
+          完成从素材整理到成片输出的全流程后期，最终使整部影片获得良好的视听效果。
+        </p>
+      </div>
+
+      <figure class="film-player">
+        <div data-shaka-player-container>
+          <video data-shaka-player playsinline crossorigin
+                 src="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4"></video>
+        </div>
+
+        <figcaption>
+          微电影《梦遇妙音》正片
+          <a href="https://r2.newjie.net/videos/portfolio/mymy_1080sdr.mp4" target="_blank" rel="noopener">播放器无法加载？直接打开视频 ↗</a>
+        </figcaption>
+      </figure>
+    </div>
+
+    <!-- 第一行：正片截图（横向，通栏）
+         第二行：结项证书（纵向） + 后期工程截图（横向，垂直居中）
+         顺序：正片截图 → 结项证书 → 后期工程截图 -->
+    <figure class="zoomable reveal film-shot" data-full="assets/img/film-poster-grid.jpg" tabindex="0" role="button" aria-label="放大查看正片截图">
+      <img width="1280" height="523" src="assets/img/film-poster-grid.jpg" alt="微电影《梦遇妙音》海报与正片剧照拼图" loading="lazy">
+      <figcaption>正片截图</figcaption>
+    </figure>
+
+    <div class="film-media-row reveal">
+      <figure class="zoomable" data-full="assets/img/film-certificate.jpg" tabindex="0" role="button" aria-label="放大查看项目结项证书">
+        <img width="873" height="1280" src="assets/thumb/film-certificate.jpg" alt="北方民族大学国家级大学生创新创业训练计划项目结项证书" loading="lazy">
+        <figcaption>项目结项证书</figcaption>
+      </figure>
+
+      <figure class="zoomable" data-full="assets/img/film-postproduction.jpg" tabindex="0" role="button" aria-label="放大查看后期工程截图">
+        <img width="800" height="474" src="assets/thumb/film-postproduction.jpg" alt="《梦遇妙音》后期工程截图：Premiere 剪辑、DaVinci 调色、Audition 混音、After Effects 特效四个工作界面" loading="lazy">
+        <figcaption>后期工程截图</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 02 AIGC ══════════ -->
+<section class="section section--tonal" id="aigc">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">02 · AIGC</p>
+      <h2 class="t-headline-l">AIGC 视频作品</h2>
+      <p>3 部作品获省级融媒体平台录用</p>
+    </header>
+
+    <!-- AIGC 成片列表：点击任意一行弹出播放器
+         每行只需填 data-src（视频链接）；名称与体积直接改行内文字 -->
+    <ul class="video-list reveal">
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/shici.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">跟着诗词游宁夏</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/xiaoman.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">小满节气</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+
+      <li>
+        <button class="video-row" type="button" data-src="https://r2.newjie.net/videos/portfolio/saiche.mp4">
+          <span class="video-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm16 4.5 4-2.5v12l-4-2.5v-7z"/></svg>
+          </span>
+          <span class="video-row__text">
+            <span class="video-row__name">赛车活动</span>
+          </span>
+          <span class="video-row__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </li>
+    </ul>
+
+    <p class="reveal" style="max-width:62ch;color:var(--md-sys-color-on-surface-variant)">
+      在 AIGC 视频技术快速兴起的背景下，我运用 AI 工具完成<strong>脚本撰写</strong>与<strong>画面生成</strong>，
+      经后期处理形成完整的 AIGC 视频内容，通过主流融媒体平台展示创新视听内容。
+    </p>
+
+    <div class="card-grid">
+      <article class="card card--outlined card--interactive aigc-card reveal">
+        <figure class="zoomable" data-full="assets/img/aigc-shijingnx.jpg" tabindex="0" role="button" aria-label="放大查看《跟着诗词游宁夏》">
+          <img width="754" height="1192" src="assets/thumb/aigc-shijingnx.jpg" alt="“黄河云视”平台发布的《跟着诗词游宁夏》视频页面截图" loading="lazy">
+        </figure>
+        <div class="aigc-card__body">
+          <p class="aigc-card__meta">诗画宁夏</p>
+          <h3>跟着诗词游宁夏</h3>
+          <p>以诗词为线索串联宁夏山川风物，用 AI 生成画面重构“千年文脉”的视觉想象。</p>
+          <a class="btn btn--text aigc-card__link" href="https://web.cmc.nxhhy.cn/nxrmtpt_html/nxhhy/sy/AIsjknx/1979460.shtml" target="_blank" rel="noopener">
+            <span>黄河云视 观看</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </a>
+        </div>
+      </article>
+
+      <article class="card card--outlined card--interactive aigc-card reveal">
+        <figure class="zoomable" data-full="assets/img/aigc-xiaoman.jpg" tabindex="0" role="button" aria-label="放大查看《小满节气》">
+          <img width="765" height="1192" src="assets/thumb/aigc-xiaoman.jpg" alt="“黄河云视”平台发布的《小满节气》视频页面截图" loading="lazy">
+        </figure>
+        <div class="aigc-card__body">
+          <p class="aigc-card__meta">二十四节气中国神话系列</p>
+          <h3>小满节气</h3>
+          <p>桑茂蚕生处，丝织绕梦长。用 AIGC 呈现节气背后的神话传说，探索传统文化的当代转译。</p>
+          <p class="aigc-card__src">获国家民委民族传播品牌“道中华”视频号转载</p>
+          <a class="btn btn--text aigc-card__link" href="https://web.cmc.nxhhy.cn/nxrmtpt_html/nxhhy/sy/hhydsp/1992878.shtml" target="_blank" rel="noopener">
+            <span>黄河云视 观看</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </a>
+        </div>
+      </article>
+
+      <article class="card card--outlined card--interactive aigc-card reveal">
+        <figure class="zoomable" data-full="assets/img/aigc-saiche.jpg" tabindex="0" role="button" aria-label="放大查看《赛车活动》">
+          <img width="747" height="1249" src="assets/thumb/aigc-saiche.jpg" alt="“黄河云视”平台发布的赛车活动宣传视频页面截图" loading="lazy">
+        </figure>
+        <div class="aigc-card__body">
+          <p class="aigc-card__meta">贺兰山摩托车越野赛 · 大武口区工业文化旅游嘉年华</p>
+          <h3>赛车活动</h3>
+          <p>以强节奏视听语言呈现赛事张力，为地方文旅活动提供年轻化的传播表达。</p>
+          <a class="btn btn--text aigc-card__link" href="https://web.cmc.nxhhy.cn/nxrmtpt_html/nxhhy/sy/sp/2116545.shtml" target="_blank" rel="noopener">
+            <span>黄河云视 观看</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <div class="feature-card reveal">
+      <figure class="zoomable" data-full="assets/img/aigc-daozhonghua.jpg" tabindex="0" role="button" aria-label="放大查看“道中华”转载截图">
+        <img width="607" height="1280" src="assets/thumb/aigc-daozhonghua.jpg" alt="国家民委民族传播品牌“道中华”视频号转载《小满》作品截图" loading="lazy">
+      </figure>
+      <div>
+        <p class="eyebrow" style="color:inherit">国家级平台二次传播</p>
+        <h3 class="t-headline-s">“道中华”视频号转载《小满》</h3>
+        <p>
+          其中《小满节气》因表现突出，获<strong>国家民委民族传播品牌“道中华”视频号</strong>转载，
+          实现从省级融媒体平台到国家级平台的二次传播。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 03 视频新闻 ══════════ -->
+<section class="section" id="news">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">03 · NEWS</p>
+      <h2 class="t-headline-l">视频新闻作品</h2>
+        <p style="color:var(--md-sys-color-on-surface-variant)">
+          我参与了该视频新闻的出镜报道、拍摄、剪辑、配音和图文包装工作。
+        </p>
+    </header>
+
+      <figure class="film-player">
+        <div data-shaka-player-container>
+          <video data-shaka-player playsinline crossorigin
+                 src="https://r2.newjie.net/videos/portfolio/plc.mp4"></video>
+        </div>
+
+        <figcaption>
+          视频新闻成片
+          <a href="https://r2.newjie.net/videos/portfolio/plc.mp4" target="_blank" rel="noopener">播放器无法加载？直接打开视频 ↗</a>
+        </figcaption>
+      </figure>
+
+      <div class="news-stills reveal">
+        <figure class="zoomable" data-full="assets/img/news-still-01.jpg" tabindex="0" role="button" aria-label="放大查看截图：展览现场外景">
+          <img width="1600" height="900" src="assets/thumb/news-still-01.jpg" alt="视频新闻截图：盘龙城遗址博物院“江流万古”长江流域古代文明瑰宝展外景" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-02.jpg" tabindex="0" role="button" aria-label="放大查看截图：出镜报道">
+          <img width="1600" height="900" src="assets/thumb/news-still-02.jpg" alt="视频新闻截图：记者刘牧欣在展厅出镜报道" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-03.jpg" tabindex="0" role="button" aria-label="放大查看截图：展品特写">
+          <img width="1600" height="900" src="assets/thumb/news-still-03.jpg" alt="视频新闻截图：展厅内青铜面具展品特写" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/news-still-04.jpg" tabindex="0" role="button" aria-label="放大查看截图：现场采访">
+          <img width="1600" height="900" src="assets/thumb/news-still-04.jpg" alt="视频新闻截图：记者在展厅内采访观众" loading="lazy">
+        </figure>
+        <p class="news-stills__cap">正片截图</p>
+      </div>
+  </div>
+</section>
+
+<!-- ══════════ 04 图文类 ══════════ -->
+<section class="section section--tonal" id="article">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">04 · EDITORIAL</p>
+      <h2 class="t-headline-l">图文类</h2>
+    </header>
+
+    <h3 class="block-title reveal">
+      <span class="block-title__badge">01</span>
+      <span class="block-title__text">公众号运营</span>
+    </h3>
+
+    <div class="reveal" style="margin-bottom:clamp(28px,4vw,48px)">
+      <p class="eyebrow">校园媒体 · 编辑</p>
+      <h4 class="t-title-l" style="margin-bottom:10px">北方民族大学文学与新闻传播学院团委宣传部</h4>
+      <p style="color:var(--md-sys-color-on-surface-variant);max-width:62ch">
+        负责学院新闻采写、拍摄和学院公众号推文制作发布。
+      </p>
+
+      <div class="mp-grid" style="margin-top:20px">
+        <figure class="zoomable" data-full="assets/img/mp-wenchuan-01.jpg" tabindex="0" role="button" aria-label="放大查看推文截图">
+          <img width="800" height="1058" src="assets/thumb/mp-wenchuan-01.jpg" alt="学院公众号推文《文传风采 继往开来》截图" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/mp-wenchuan-02.jpg" tabindex="0" role="button" aria-label="放大查看推文截图">
+          <img width="800" height="1056" src="assets/thumb/mp-wenchuan-02.jpg" alt="学院公众号讲座预告推文截图" loading="lazy">
+        </figure>
+        <figure class="zoomable" data-full="assets/img/mp-wenchuan-03.jpg" tabindex="0" role="button" aria-label="放大查看推文截图">
+          <img width="800" height="1046" src="assets/thumb/mp-wenchuan-03.jpg" alt="学院公众号就业喜讯推文截图" loading="lazy">
+        </figure>
+      </div>
+
+      <div class="link-list">
+        <a href="https://mp.weixin.qq.com/s/clFp5BcOHg40H1xdsz5wcQ" target="_blank" rel="noopener">
+          <span>阅读推文 · 主题晚班会</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </a>
+        <a href="https://mp.weixin.qq.com/s/A-7GRTCqPLQcJ3qaSuXSxA" target="_blank" rel="noopener">
+          <span>阅读推文 · 知名作家进校园</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </a>
+        <a href="https://mp.weixin.qq.com/s/UjGSoWIKW3iSIK5UawEJrg" target="_blank" rel="noopener">
+          <span>阅读推文 · 就业喜讯</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="card card--outlined reveal" style="padding:clamp(20px,3vw,32px)">
+      <p class="eyebrow">自主创办 · 主编</p>
+      <h4 class="t-title-l" style="margin-bottom:10px">公众号「观界潮声」</h4>
+      <p style="color:var(--md-sys-color-on-surface-variant);max-width:62ch">
+        自主创办并运营，独立完成选题策划、图文撰写、排版制作与发布。
+      </p>
+      <div class="guanjie" style="margin-top:20px">
+        <figure class="zoomable" data-full="assets/img/mp-guanjie-profile.jpg" tabindex="0" role="button" aria-label="放大查看公众号主页">
+          <img width="800" height="359" src="assets/thumb/mp-guanjie-profile.jpg" alt="公众号“观界潮声”主页信息：31 篇原创内容，53 人关注" loading="lazy">
+        </figure>
+        <figure class="zoomable qr" data-full="assets/img/mp-guanjie-qr.jpg" tabindex="0" role="button" aria-label="放大查看公众号二维码">
+          <img width="430" height="430" src="assets/thumb/mp-guanjie-qr.jpg" alt="公众号“观界潮声”关注二维码" loading="lazy">
+        </figure>
+        <div class="guanjie-stats">
+          <p class="t-body-s muted" style="margin:0">扫码关注，查看图文作品</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="block-title reveal">
+      <span class="block-title__badge">02</span>
+      <span class="block-title__text">摄影作品</span>
+    </h3>
+    <p class="reveal" style="color:var(--md-sys-color-on-surface-variant)">
+      2025 年北方民族大学首届网络文化节和网络教育优秀作品展示活动 获奖作品
+    </p>
+
+    <article class="photo-block reveal" style="margin-top:24px">
+      <div class="photo-block__head">
+        <h4>风过草原</h4>
+        <span class="badge">二等奖</span>
+      </div>
+      <figure class="zoomable" data-full="assets/img/photo-fengguocaoyuan.jpg" tabindex="0" role="button" aria-label="放大查看《风过草原》">
+        <img width="800" height="504" src="assets/thumb/photo-fengguocaoyuan.jpg" alt="摄影作品《风过草原》组图：公路自驾、草原羊群、云影山峦" loading="lazy">
+        <figcaption>草原公路与羊群 · 组图</figcaption>
+      </figure>
+      <p style="margin-top:16px">以内蒙草原为拍摄对象，用组图记录旅途中的光影与牧群，在开阔构图中呈现草原的气候与呼吸感。</p>
+    </article>
+
+    <article class="photo-block reveal">
+      <div class="photo-block__head">
+        <h4>西岳灵辉</h4>
+        <span class="badge badge--tertiary">三等奖</span>
+      </div>
+      <figure class="zoomable" data-full="assets/img/photo-xiyuelinghui.jpg" tabindex="0" role="button" aria-label="放大查看《西岳灵辉》">
+        <img width="800" height="689" src="assets/thumb/photo-xiyuelinghui.jpg" alt="摄影作品《西岳灵辉》组图：华山日出、山脊、索道与主峰" loading="lazy">
+        <figcaption>华山日出与主峰 · 组图</figcaption>
+      </figure>
+      <p style="margin-top:16px">以华山为对象，捕捉日出前后的色温变化与山体轮廓，通过长焦压缩与逆光剪影强化西岳的峻拔气势。</p>
+    </article>
+  </div>
+</section>
+
+<!-- ══════════ 05 实践经历 ══════════ -->
+<section class="section" id="practice">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">05 · PRACTICE</p>
+      <h2 class="t-headline-l">实践经历</h2>
+    </header>
+
+    <article class="prac reveal">
+      <div class="prac__text">
+        <p class="eyebrow">2024.09</p>
+        <h3 class="t-headline-s">参与宁夏党委网信办媒体达人探访行活动</h3>
+        <p>
+          与中央驻宁夏、宁夏回族自治区各级新闻媒体、网络达人实地探访，
+          宣传报道铸牢中华民族共同体意识取得的丰硕成果；随团走访多地，
+          与中央广播电视总台、宁夏日报等媒体同行深入交流。
+        </p>
+        <p>
+          产出深度报道，有效展现了宁夏民族团结进步的典型经验，
+          锻炼了在大型媒体联动项目中的协作能力，并被<strong>新华网、宁夏广播电视台和宁夏日报</strong>等媒体报道。
+        </p>
+      <div class="prac__media">
+        <figure class="zoomable" data-full="assets/img/practice-media-tour.jpg" tabindex="0" role="button" aria-label="放大查看活动报道版面">
+          <img width="800" height="516" src="assets/thumb/practice-media-tour.jpg" alt="宁夏党委网信办“石榴花开 籽籽同心”媒体达人探访行活动报道截图" loading="lazy">
+          <figcaption>活动报道版面</figcaption>
+        </figure>
+      </div>
+        <div class="chip-set" style="margin-top:16px">
+          <span class="chip chip--tag">大型媒体联动</span>
+          <span class="chip chip--tag">深度报道</span>
+          <span class="chip chip--tag">实地探访</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="prac prac--rev reveal">
+      <div class="prac__text">
+        <p class="eyebrow">2023.10 — 2025.06</p>
+        <h3 class="t-headline-s">北方民族大学团委大学生艺术团多媒体技术部</h3>
+        <p class="prac__role">志愿者 → 负责人</p>
+        <p>
+          负责校级大型演出与会议的灯光音响视频技术保障，工作环境对实时响应和技术稳定性要求极高，
+          确保了各类大型活动现场音视频的艺术效果与流程衔接的完美呈现。
+        </p>
+        <p>
+          例如，2024 年 10 月，在<strong>中国（宁夏）——中亚青年友谊营</strong>活动中，我负责现场音响调音，
+          保障了有外国领导、自治区领导出席并发言的会议及文艺演出顺利进行，实现演出流程零差错和高水准的艺术呈现；
+          在<strong>“五四青春诗会”</strong>中，通过精准的现场音响调音，圆满完成面向自治区团委领导及 1500 余名师生的展示任务。
+        </p>
+      <div class="prac__media">
+        <div class="media-grid">
+          <figure class="zoomable" data-full="assets/img/practice-youth-camp.jpg" tabindex="0" role="button" aria-label="放大查看友谊营现场">
+            <img width="800" height="533" src="assets/thumb/practice-youth-camp.jpg" alt="中国（宁夏）—中亚青年友谊营活动现场" loading="lazy">
+          </figure>
+          <figure class="zoomable" data-full="assets/img/practice-poetry.jpg" tabindex="0" role="button" aria-label="放大查看诗会现场">
+            <img width="800" height="533" src="assets/thumb/practice-poetry.jpg" alt="五四青春诗会活动现场" loading="lazy">
+          </figure>
+          <figure class="zoomable" data-full="assets/img/practice-console.jpg" tabindex="0" role="button" aria-label="放大查看控制台">
+            <img width="800" height="601" src="assets/thumb/practice-console.jpg" alt="活动现场灯光音响控制台" loading="lazy">
+          </figure>
+        </div>
+      </div>
+        <div class="chip-set" style="margin-top:16px">
+        </div>
+      </div>
+    </article>
+
+    <div class="cert-grid reveal">
+      <figure class="zoomable" data-full="assets/img/practice-appointment.jpg" tabindex="0" role="button" aria-label="放大查看聘书">
+        <img width="800" height="594" src="assets/thumb/practice-appointment.jpg" alt="北方民族大学第五届大学生艺术团多媒体技术部负责人聘书" loading="lazy">
+        <figcaption>多媒体技术部负责人聘书</figcaption>
+      </figure>
+      <figure class="zoomable" data-full="assets/img/practice-thanks-letter.jpg" tabindex="0" role="button" aria-label="放大查看感谢信">
+        <img width="641" height="1280" src="assets/thumb/practice-thanks-letter.jpg" alt="共青团宁夏回族自治区委员会感谢信" loading="lazy">
+        <figcaption>自治区团委感谢信</figcaption>
+      </figure>
+    </div>
+
+    <article class="card card--outlined reveal" style="padding:clamp(20px,3vw,32px);margin-top:clamp(24px,3vw,40px)">
+      <p class="eyebrow">2025.07 — 2025.08</p>
+      <h3 class="t-title-l" style="margin-bottom:12px">内蒙古自治区呼和浩特市玉泉区民族事务委员会 · 办公室实习生</h3>
+      <p style="color:var(--md-sys-color-on-surface-variant);margin:0">
+        协助进行公文撰写及报送工作，运营公众号；同时负责政府网站新闻内容的编辑及发布。
+        实习期间维持了宣传平台的高频更新与运营，有效提升了政务信息公开的透明度与及时性。
+      </p>
+    </article>
+  </div>
+</section>
+
+<!-- ══════════ 06 技能与荣誉 ══════════ -->
+<section class="section section--tonal" id="skills">
+  <div class="wrap">
+    <header class="section-head reveal">
+      <p class="eyebrow">06 · SKILLS</p>
+      <h2 class="t-headline-l">技能与荣誉</h2>
+    </header>
+
+    <div class="skill-grid">
+      <div class="card card--outlined skill-card reveal">
+        <h3>音视频创作</h3>
+        <p>能够运用 Premiere、After Effects、DaVinci Resolve 等软件完成音视频后期的全流程工作。</p>
+        <div class="chip-set">
+          <span class="chip chip--tag">剪辑</span>
+          <span class="chip chip--tag">调色</span>
+          <span class="chip chip--tag">混音</span>
+          <span class="chip chip--tag">特效包装</span>
+          <span class="chip chip--tag">AIGC</span>
+        </div>
+      </div>
+
+      <div class="card card--outlined skill-card reveal">
+        <h3>推文排版制作</h3>
+        <p>能够使用秀米、E2 黑科技编辑器等排版工具完成微信公众号推文制作。</p>
+        <div class="chip-set">
+          <span class="chip chip--tag">选题策划</span>
+          <span class="chip chip--tag">图文采写</span>
+          <span class="chip chip--tag">排版编辑</span>
+          <span class="chip chip--tag">账号运营</span>
+        </div>
+      </div>
+
+      <div class="card card--outlined skill-card reveal">
+        <h3>语言</h3>
+        <p>通过 CET-4，具备较强的英语听说读写能力；普通话一级乙等。</p>
+        <div class="chip-set">
+          <span class="chip chip--tag">CET-4</span>
+          <span class="chip chip--tag">普通话一级乙等</span>
+        </div>
+      </div>
+
+      <div class="card card--outlined skill-card reveal">
+        <h3>荣誉证书</h3>
+        <p>北方民族大学校级二等奖学金 2 次；2025 年首届网络文化节三项作品分别获得二等奖、三等奖和优秀奖。</p>
+        <div class="chip-set">
+          <span class="chip chip--tag">校级奖学金 ×2</span>
+          <span class="chip chip--tag">网络文化节 ×3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-band reveal">
+      <div>
+        <h3 class="t-headline-s">欢迎与我进一步交流</h3>
+        <p>完整的教育经历、实践经历与荣誉证书，请查看简历页面。</p>
+      </div>
+      <div class="cta-band__actions">
+        <a class="btn btn--filled" href="resume.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <span>查看完整简历</span>
+        </a>
+        <a class="btn btn--outlined" href="mailto:new_jie@outlook.com">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <span>邮件联系</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__row">
+      <div>
+        <p class="footer__name">刘牧欣</p>
+        <p class="muted t-body-m" style="margin:0">新闻宣传 · 求职作品集</p>
+      </div>
+      <div class="footer__links">
+        <a href="tel:18647385119">186-4738-5119</a>
+        <a href="mailto:new_jie@outlook.com">new_jie@outlook.com</a>
+        <a href="https://dvcrltzw67f.feishu.cn/wiki/RB8PwbO4aiv5s9kMo83cXr4bnif" target="_blank" rel="noopener">飞书云文档 ↗</a>
+        <a href="resume.html">完整简历</a>
+      </div>
+    </div>
+    <hr class="divider" style="opacity:.5">
+    <p class="copyright" style="margin-top:16px">© <span id="year"></span> 刘牧欣　本页所有图片与文字均为个人原创作品，未经许可请勿转载。</p>
+  </div>
+</footer>
+
+<!-- ══════════ 图片预览对话框（M3 basic dialog） ══════════ -->
+<div class="scrim" id="lightbox" role="dialog" aria-modal="true" aria-label="图片预览" hidden>
+  <div class="dialog">
+    <button class="icon-btn dialog__close" id="lbClose" type="button" aria-label="关闭">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <img id="lbImg" alt="">
+    <p class="dialog__cap" id="lbCap"></p>
+    <div class="dialog__actions">
+      <button class="btn btn--text" id="lbPrev" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        <span>上一张</span>
+      </button>
+      <button class="btn btn--text" id="lbNext" type="button">
+        <span>下一张</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ AIGC 视频播放对话框 ══════════ -->
+<div class="scrim" id="videoModal" role="dialog" aria-modal="true" aria-label="视频播放" hidden>
+  <div class="dialog dialog--video">
+    <div class="video-modal__head">
+      <p class="video-modal__title" id="videoModalTitle"></p>
+      <button class="icon-btn video-modal__close" id="videoModalClose" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <!-- 与页面上其它播放器同一套声明式写法。
+         video 刻意不写 src：Shaka 会接管它并建好控件，但不会去加载任何东西，
+         等点击列表行时再调用 player.load()。 -->
+    <div class="video-modal__stage" id="videoModalStage" data-shaka-player-container>
+      <video id="modalVideo" data-shaka-player playsinline crossorigin></video>
+    </div>
+    <p class="video-modal__hint" id="videoModalHint" hidden>视频加载失败，请检查链接</p>
+  </div>
+</div>
+
+<script src="assets/js/main.js"></script>
+<script>
+  // AIGC 成片列表：点击一行 → 打开弹窗并播放
+  (function () {
+    var modal = document.getElementById('videoModal');
+    var video = document.getElementById('modalVideo');
+    var title = document.getElementById('videoModalTitle');
+    var hint = document.getElementById('videoModalHint');
+    var closeBtn = document.getElementById('videoModalClose');
+
+    function onPlayerErrorEvent(errorEvent) {
+      onPlayerError(errorEvent.detail);
+    }
+
+    function onPlayerError(error) {
+      console.error('Error code', error.code, 'object', error);
+      hint.hidden = false;
+    }
+
+    function onUIErrorEvent(errorEvent) {
+      onPlayerError(errorEvent.detail);
+    }
+
+    // 弹窗里的 video 和页面其它播放器一样是声明式的，Shaka 会在页面加载时
+    // 自动接管它（因为没写 src，所以不会预先加载任何内容）。
+    // 这里只等它就绪，拿到 player 备用，不手动创建、也不销毁。
+    var player = null;
+
+    function initPlayer() {
+      var ui = video['ui'];
+      var controls = ui.getControls();
+
+      player = controls.getPlayer();
+      player.addEventListener('error', onPlayerErrorEvent);
+      controls.addEventListener('error', onUIErrorEvent);
+
+      // 弹窗播放器也要套用同样的配置和中文（setupPlayer 在 <head> 里定义）
+      setupPlayer(video);
+    }
+
+    function initFailed() {
+      console.error('Unable to load the UI library!');
+      hint.hidden = false;
+    }
+
+    // Shaka 初始化完成前可能就被点击了，先注册监听兜底
+    document.addEventListener('shaka-ui-loaded', function () {
+      if (!player) initPlayer();
+    });
+    document.addEventListener('shaka-ui-load-failed', initFailed);
+
+    function close() {
+      // 全屏状态下先把全屏退掉，再关弹窗。
+      // 三种情况都要处理：标准 API、iOS 的 webkit 文档全屏、iOS 的视频原生全屏。
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
+      }
+
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(function () {
+        modal.hidden = true;
+        // 同一个播放器反复使用，不销毁。只是回到片头，下次打开重新播。
+        if (player) {
+          player.pause();
+          video.currentTime = 0;
+        }
+      }, 280);
+    }
+
+    function open(row) {
+      title.textContent = row.querySelector('.video-row__name').textContent;
+      hint.hidden = true;
+
+      modal.hidden = false;
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      closeBtn.focus();
+
+      load(row.getAttribute('data-src'));
+    }
+
+    async function load(uri) {
+      // 极端情况下 Shaka 还没就绪
+      if (!player) {
+        await new Promise(function (resolve) {
+          document.addEventListener('shaka-ui-loaded', resolve, { once: true });
+        });
+        initPlayer();
+      }
+
+      try {
+        await player.load(uri);
+        console.log('The video has now been loaded!');
+      } catch (error) {
+        onPlayerError(error);
+      }
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.video-row'), function (row) {
+      row.addEventListener('click', function () { open(row); });
+    });
+
+    closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (!modal.hidden && e.key === 'Escape') close();
+    });
+  })();
+</script>
+</body>
+</html>
