@@ -1,0 +1,129 @@
+/* ============================================================================
+ * 应用样式
+ *
+ * 层叠层顺序（后面的层优先级更高）：
+ *   m3-base   ← m3-svelte 的重置与组件基样式
+ *   tokens    ← m3-svelte 的 --m3-* 令牌 + 本项目生成的 --m3c-* 配色
+ *   app       ← 本项目自己的规则
+ *
+ * 注意：本文件中未包裹在 @layer 里的规则优先级高于 m3-base，
+ * 但覆盖令牌必须写进 @layer tokens。
+ * ==========================================================================*/
+
+@layer m3-base, tokens, app;
+
+@import 'm3-svelte/etc/styles.css' layer(m3-base);
+@import 'm3-svelte/etc/recommended-styles.css' layer(m3-base);
+@import './lib/theme/tokens.css' layer(tokens);
+
+@layer app {
+	/* --------------------------------------------------------------------------
+	 * 排版基座：中文优先
+	 *
+	 * m3-svelte 默认的 --m3-font 是 "Google Sans Flex", Roboto, system-ui，
+	 * 这些字体都没有中文字形，中文会回退到浏览器默认（宋体/明朝体），
+	 * 与拉丁字母的字面大小和基线都不一致，中英混排会非常难看。
+	 *
+	 * 因此把正文换成一个以中文字体为主的系统字体栈：这些中文字体自带
+	 * 配套的拉丁字形，中英混排天然一致，且零字体下载（对 Workers 静态站
+	 * 是重要优势：不用为了中文背 10MB 的字体子集）。
+	 *
+	 * 若要换成自托管字体（例如 Roboto Flex + Noto Sans SC 子集），
+	 * 只需在 src/app.html 里加 @font-face，再把这里的名字提到最前面。
+	 * ------------------------------------------------------------------------*/
+	:root {
+		--m3-font:
+			system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', 'PingFang SC',
+			'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans CJK SC',
+			'Source Han Sans SC', sans-serif;
+
+		/* 等宽：代码块里中英混排，中文标点按 1 字宽排版 */
+		--m3-font-mono:
+			ui-monospace, 'Cascadia Code', 'Cascadia Mono', 'SF Mono', Menlo, Consolas,
+			'Liberation Mono', 'Microsoft YaHei Mono', monospace;
+	}
+
+	html {
+		/* 中文正文比拉丁字母需要更大的行高才能读得舒服 */
+		line-height: 1.75;
+		-webkit-text-size-adjust: 100%;
+		text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		background-color: var(--m3c-surface);
+		color: var(--m3c-on-surface);
+		font-family: var(--m3-font);
+		/* 中文字体在小字号下需要轻微字距，否则显得挤 */
+		letter-spacing: 0.01em;
+	}
+
+	/* 大标题反而要收紧字距（中文大字距会散） */
+	:is(h1, h2, h3) {
+		letter-spacing: -0.005em;
+	}
+
+	/* 键盘可达性：焦点必须可见，且用主色描边 */
+	:focus-visible {
+		outline: 2px solid var(--m3c-primary);
+		outline-offset: 2px;
+	}
+
+	/* 跳转到主内容：键盘用户第一个 Tab 就能跳过导航 */
+	.skip-link {
+		position: absolute;
+		left: -9999px;
+		z-index: 999;
+		padding: 0.75rem 1.25rem;
+		border-radius: var(--m3-shape-small);
+		background-color: var(--m3c-primary);
+		color: var(--m3c-on-primary);
+		text-decoration: none;
+	}
+
+	.skip-link:focus {
+		left: 1rem;
+		top: 1rem;
+	}
+
+	/* 尊重系统的减少动效设置 */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+
+	/* 布局容器 */
+	.container {
+		width: 100%;
+		max-width: 72rem;
+		margin-inline: auto;
+		padding-inline: 1rem;
+	}
+
+	.container-prose {
+		width: 100%;
+		max-width: 72rem;
+		margin-inline: auto;
+		padding-inline: 1rem;
+	}
+
+	/* 视觉隐藏但对读屏可见 */
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+}

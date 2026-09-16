@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<!--
+			主题引导脚本：必须内联且阻塞，在任何样式生效前把 <html> 的 color-scheme 定下来。
+			m3-svelte 的配色用 CSS light-dark() 实现，所以主题切换 = 改 color-scheme，不是加 .dark 类。
+			这段脚本若延后执行，暗色模式下每次导航都会白屏闪一下。
+			%lang% 与 %sveltekit.head% 是 SvelteKit 的占位符，不要改动。
+		-->
+		<script>
+			(() => {
+				const KEY = 'theme';
+				let stored = null;
+				try {
+					stored = localStorage.getItem(KEY);
+				} catch {
+					/* 隐私模式下访问 localStorage 会抛错，忽略即可 */
+				}
+				const choice = stored === 'light' || stored === 'dark' ? stored : 'auto';
+				document.documentElement.style.colorScheme =
+					choice === 'auto' ? 'light dark' : choice;
+			})();
+		</script>
+
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

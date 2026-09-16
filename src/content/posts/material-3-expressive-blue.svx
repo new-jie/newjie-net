@@ -1,0 +1,212 @@
+---
+title: 用 Material 3 Expressive 生成一套蓝色主题配色
+description: 从单个种子色推导 58 个 MD3 色彩角色，绕开上游两个真实缺陷，并用 WCAG 对比度校验兜底。
+date: 2026-09-16
+tags: [设计系统, Material Design, 色彩]
+slug: material-3-expressive-blue
+pinned: true
+---
+
+Material Design 3 的配色体系不是一张色板，而是一套**从种子色推导色彩角色**的算法。这件事的价值在于：你只维护一个品牌色，其余 57 个角色自动保证和谐与可访问性。
+
+这篇文章记录本站配色的完整推导过程，包括两个必须绕开的上游缺陷。
+
+## 为什么不用现成的色板
+
+手写 `--primary: #1976d2` 的做法有根本问题：明暗两套主题需要手工调 100 多个色值，任何一个疏忽都会造成对比度不足。MD3 的解法是把**色调（tone）**作为中间量。
+
+在 HCT 色彩空间里，一个颜色由三个分量描述：
+
+| 分量 | 含义 | 取值 |
+| --- | --- | --- |
+| Hue | 色相 | 0–360 |
+| Chroma | 彩度 | 0–120+ |
+| Tone | 明度（感知亮度） | 0–100 |
+
+Tone 的关键性质是：**它近似等于感知亮度**。所以「正文与背景的对比度至少 4.5:1」这个要求，可以转化成「两个 tone 至少相差 40」这样的确定性规则，而与色相无关。
+
+## 三组调色板，而不是一张色表
+
+MD3 从种子色派生出五组调色板，每个色彩角色都是「某组调色板的某个 tone」：
+
+```ts
+// 简化后的模型
+type Palette = (tone: number) => Color;
+
+interface Scheme {
+  primaryPalette: Palette;
+  secondaryPalette: Palette;
+  tertiaryPalette: Palette;
+  neutralPalette: Palette;        // 用于 surface / background
+  neutralVariantPalette: Palette; // 用于 outline / surfaceVariant
+}
+```
+
+配色生成就是把这些 `Palette(tone)` 组合成具名角色，例如：
+
+- `primary` = primaryPalette(40)（亮色主题）
+- `onPrimary` = primaryPalette(100)
+- `surfaceContainerHigh` = neutralPalette(92)
+
+## 陷阱一：Expressive 变体会把辅色变成绿色
+
+MD3 有多个**变体（variant）**，决定辅色与强调色如何从主色派生。本站用的是 `Variant.EXPRESSIVE`——Material 3 Expressive 的色彩分支。
+
+问题在于：Expressive 变体对 `secondary` 和 `tertiary` 做的是**固定色相轮转**。当种子色是蓝色（HCT 色相 ≈ 270°）时，得到的辅色是这样的：
+
+```
+secondary   #3d6759   ← 灰绿色
+tertiary    #006d50   ← 青绿色
+```
+
+蓝色主色搭配绿色辅色，对技术博客来说过于跳脱。而且这不是配置问题——MCU 的多源色 API（`sourceColorHcts`）对这个变体**完全无效**，传入 2 个或 3 个种子色的输出逐字节相同：
+
+```ts
+// 这五种写法输出完全一致，因为 Expressive 变体只用第一个种子色
+new SchemeExpressive([blue], false, 0, '2025');
+new SchemeExpressive([blue, grayBlue], false, 0, '2025');
+new SchemeExpressive([blue, slate, cyan], false, 0, '2025');
+```
+
+正确的做法是**绕过变体构造器，直接用父类覆写调色板**：
+
+```ts
+import { DynamicScheme, Variant, TonalPalette } from '@ktibow/material-color-utilities-nightly';
+
+const blueprint = new DynamicScheme({
+  sourceColorHct: hct,
+  variant: Variant.EXPRESSIVE,
+  contrastLevel: 0,
+  isDark: false,
+  platform: 'phone',
+  specVersion: '2025'
+});
+
+// 同色相 + 低彩度 → 读作中性冷灰蓝，适合边框与次要文字
+const secondaryPalette = TonalPalette.fromHueAndChroma(hct.hue, 16);
+
+// 色相偏移 +45° + 低彩度 → 柔和紫，只用于标签点缀
+const tertiaryPalette = TonalPalette.fromHueAndChroma((hct.hue + 45) % 360, 32);
+
+const light = new DynamicScheme({
+  sourceColorHct: hct,
+  variant: Variant.EXPRESSIVE,
+  contrastLevel: 0,
+  isDark: false,
+  platform: 'phone',
+  specVersion: '2025',
+  primaryPalette: blueprint.primaryPalette,
+  neutralPalette: blueprint.neutralPalette,
+  neutralVariantPalette: blueprint.neutralVariantPalette,
+  secondaryPalette,
+  tertiaryPalette
+});
+```
+
+这样既保留了 Expressive 的 primary 与 neutral 调色取向，又把辅色拉回了蓝色邻近色域。
+
+## 陷阱二：tertiary_container 明暗同色
+
+第二个缺陷更隐蔽。Material Color Spec 的 2025 与 2026 delegate 里，`tertiary_container` 与 `on_tertiary_container` **没有挂对比度曲线**，导致亮色与暗色主题取到同一个 tone：
+
+```
+spec 2025 · light == dark 的角色: tertiary_container, on_tertiary_container, ...
+spec 2026 · light == dark 的角色: tertiary_container, on_tertiary_container, ...
+```
+
+> `*_fixed` 系列明暗同色是**设计如此**（fixed 意味着不随主题变化），但 `tertiary_container` 不是 fixed 角色，它应该随主题变化。所以这是缺陷，不是特性。
+
+修法是按 M3 的 tone 规范重建这两个角色——容器用亮色 T90 / 暗色 T30，前景用亮色 T10 / 暗色 T90：
+
+```ts
+const tcLight = tertiaryPalette.tone(90);
+const tcDark = tertiaryPalette.tone(30);
+const otcLight = tertiaryPalette.tone(10);
+const otcDark = tertiaryPalette.tone(90);
+```
+
+因为 m3-svelte 生成的配色用 `light-dark()` 承载明暗两套值，修补也就一行 CSS：
+
+```css
+@layer tokens {
+  :root {
+    --m3c-tertiary-container: light-dark(#f4daff, #573c69);
+    --m3c-on-tertiary-container: light-dark(#290f3a, #f4daff);
+  }
+}
+```
+
+## 陷阱三：十六进制转换会静默出错
+
+这个坑跟色彩算法无关，但足够典型值得记下。ARGB 整数转 hex 时，常见的写法是：
+
+```js
+const hex = (argb) => '#' + (argb & 0xffffff).toString(16).padStart(6, '0'); // 错误
+```
+
+看起来没问题，但 `argb` 是**有符号** 32 位整数。当 alpha 为 `0xff` 时符号位为 1，`argb` 是负数，JS 的位运算会先把操作数转成**有符号** 32 位。
+
+`& 0xffffff` 的结果仍可能带符号位，`.toString(16)` 于是输出负数形式。实测中蓝色 `#0B57D0` 会被打印成 `#ff3b5c`——一个红色。
+
+正确写法是用无符号右移按字节拼：
+
+```js
+const hex = (argb) => {
+  const u = argb >>> 0;
+  return '#' + [u >>> 16, u >>> 8, u].map((v) => (v & 0xff).toString(16).padStart(2, '0')).join('');
+};
+```
+
+教训是：**色彩管道的中间值必须校验，不能靠肉眼看输出**。我一开始就把 `#FF366A` 当成了绿色系的正常输出，实际它是 `#366AA0` 经过一次错误的位运算之后的结果。
+
+## 用对比度校验兜底
+
+配色算法再正确，也应该有一道独立校验。生成器内置了 WCAG 相对亮度计算，对 12 组关键前景/背景组合逐一验算：
+
+```ts
+const srgbToLin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+
+const relLum = (argb) => {
+  const u = argb >>> 0;
+  const [r, g, b] = [(u >>> 16) & 0xff, (u >>> 8) & 0xff, u & 0xff].map((v) => srgbToLin(v / 255));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const contrast = (a, b) => {
+  const [x, y] = [relLum(a), relLum(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+};
+```
+
+本站最终的校验结果，两个主题共 24 项全部达到 AA：
+
+| 组合 | 亮色 | 暗色 |
+| --- | --- | --- |
+| 正文 onSurface / surface | 12.14 | 15.43 |
+| 次要正文 onSurfaceVariant / surface | 6.07 | 8.41 |
+| 链接 primary / surface | 6.05 | 9.22 |
+| 按钮 onPrimary / primary | 6.03 | 6.04 |
+| 错误容器 onErrorContainer / errorContainer | 4.55 | 4.55 |
+
+任何一项低于 4.5 就会让生成脚本以非零退出码结束，构建随之失败。这样配色就不可能悄悄退化。
+
+## 最终配色
+
+种子色 `#0B57D0`，变体 Expressive，色规范 2025。几个关键角色：
+
+```
+primary              light #3b5caa   dark #95b1ff
+primaryContainer     light #aac0ff   dark #84a3f6
+secondary            light #595f72   dark #c0c6dd
+surface              light #faf8ff   dark #060d20
+surfaceContainer     light #eaedff   dark #0d1834
+onSurface            light #223156   dark #dee5ff
+```
+
+想换配色，只改 `scripts/theme.config.mjs` 里的 `seed` 一个值，然后：
+
+```bash
+npm run gen:theme
+```
+
+58 个色彩角色、明暗两套、对比度校验会一起重新生成。

@@ -1,0 +1,86 @@
+/* ============================================================================
+ * MD3 配色 — 由 scripts/gen-theme.mjs 生成，请勿手改
+ * 重新生成：npm run gen:theme
+ *
+ *   seed        #0B57D0
+ *   变体        M3 Expressive (Variant.EXPRESSIVE)
+ *   色规范      Material Color Spec 2025
+ *   secondary   色相 270.3° 彩度 16（同色相低彩度冷灰蓝）
+ *   tertiary    色相 315.3° 彩度 32（邻近色，仅用于点缀）
+ *
+ * 明暗两套色以 CSS light-dark() 压缩在单条声明内，
+ * 切换主题 = 修改 <html> 的 color-scheme，不要用 .dark 类。
+ * ==========================================================================*/
+:root {
+  color-scheme: light dark;
+}
+@layer tokens {
+  :root {
+    --m3c-surface: light-dark(#faf8ff, #060d20);
+    --m3c-surface-dim: light-dark(#ced9ff, #060d20);
+    --m3c-surface-bright: light-dark(#faf8ff, #192a54);
+    --m3c-surface-container-lowest: light-dark(#fff, #000);
+    --m3c-surface-container-low: light-dark(#f2f3ff, #091229);
+    --m3c-surface-container: light-dark(#eaedff, #0d1834);
+    --m3c-surface-container-high: light-dark(#e2e7ff, #111e3e);
+    --m3c-surface-container-highest: light-dark(#dae2ff, #152449);
+    --m3c-on-surface: light-dark(#223156, #dee5ff);
+    --m3c-on-surface-variant: light-dark(#505e86, #9caad6);
+    --m3c-outline: light-dark(#6b7aa3, #66749e);
+    --m3c-outline-variant: light-dark(#a2b1de, #38476d);
+    --m3c-inverse-surface: light-dark(#060d20, #faf8ff);
+    --m3c-inverse-on-surface: light-dark(#959cb5, #4d546b);
+    --m3c-primary: light-dark(#3b5caa, #95b1ff);
+    --m3c-primary-dim: light-dark(#2d4f9d, #84a3f6);
+    --m3c-on-primary: light-dark(#f9f8ff, #002e77);
+    --m3c-primary-container: light-dark(#aac0ff, #84a3f6);
+    --m3c-on-primary-container: light-dark(#0e3884, #002360);
+    --m3c-primary-fixed: #aac0ff;
+    --m3c-primary-fixed-dim: #95b1ff;
+    --m3c-on-primary-fixed: #002461;
+    --m3c-on-primary-fixed-variant: #1c418e;
+    --m3c-inverse-primary: light-dark(#84a3f6, #3b5ca9);
+    --m3c-secondary: light-dark(#595f72, #c0c6dd);
+    --m3c-secondary-dim: light-dark(#4d5366, #b2b8ce);
+    --m3c-on-secondary: light-dark(#f9f8ff, #3a4052);
+    --m3c-secondary-container: light-dark(#e2e7ff, #1f2536);
+    --m3c-on-secondary-container: light-dark(#4f5568, #9ea3b9);
+    --m3c-secondary-fixed: #e2e7ff;
+    --m3c-secondary-fixed-dim: #d4d9f0;
+    --m3c-on-secondary-fixed: #3c4255;
+    --m3c-on-secondary-fixed-variant: #595f72;
+    --m3c-tertiary: light-dark(#715483, #efcfff);
+    --m3c-tertiary-dim: light-dark(#644876, #e3bff6);
+    --m3c-on-tertiary: light-dark(#fff6fd, #5d416f);
+    --m3c-tertiary-container: #e3bff6;
+    --m3c-on-tertiary-container: #543966;
+    --m3c-tertiary-fixed: #e3bff6;
+    --m3c-tertiary-fixed-dim: #d4b2e7;
+    --m3c-on-tertiary-fixed: #3f2551;
+    --m3c-on-tertiary-fixed-variant: #5e426f;
+    --m3c-error: light-dark(#ac3434, #ff716c);
+    --m3c-error-dim: light-dark(#70030f, #c94947);
+    --m3c-on-error: light-dark(#fff7f6, #490006);
+    --m3c-error-container: light-dark(#f56965, #8a1a1e);
+    --m3c-on-error-container: light-dark(#65000b, #ff9993);
+    --m3c-shadow: #000;
+    --m3c-scrim: #000;
+    --m3c-on-on-primary: light-dark(#3b5ba9, #95b1ff);
+    --m3c-primary-container-subtle: light-dark(#ced9ff, #00286a);
+    --m3c-on-primary-container-subtle: light-dark(#264996, #8aa9fc);
+    --m3c-secondary-container-subtle: light-dark(#d4d9f0, #262c3d);
+    --m3c-on-secondary-container-subtle: light-dark(#464c5f, #a5aac0);
+    --m3c-tertiary-container-subtle: light-dark(#efcfff, #3b214c);
+    --m3c-on-tertiary-container-subtle: light-dark(#5d416f, #c09fd3);
+    --m3c-error-container-subtle: light-dark(#ffcfcb, #60000a);
+    --m3c-on-error-container-subtle: light-dark(#922123, #ff8983);
+  }
+}
+/* ---- 修补：Material Color Spec 2025 的 tertiary_container 缺少对比度曲线，明暗同值 ----
+   按 M3 tone 规范重建：容器 light=T90 / dark=T30，前景 light=T10 / dark=T90 */
+@layer tokens {
+	:root {
+		--m3c-tertiary-container: light-dark(#f4daff, #573c69);
+		--m3c-on-tertiary-container: light-dark(#290f3a, #f4daff);
+	}
+}

@@ -1,0 +1,203 @@
+---
+title: Svelte 5 Runes 实战笔记
+description: $state、$derived、$props、$effect 与 runes 文件模块：踩过的坑与真实写法，附 Svelte 4 对照。
+date: 2026-09-10
+tags: [Svelte, 前端, 状态管理]
+slug: svelte-5-runes-notes
+---
+
+Svelte 5 用 runes（`$state`、`$derived`、`$props`、`$effect`）替换了 Svelte 4 的 `let` + `$:` 响应式语法。这篇文章记录实际迁移中真正会绊到人的地方。
+
+## 响应式的重心从「编译期赋值」转到「运行期信号」
+
+Svelte 4 的 `$:` 是编译期语法糖，靠静态分析找出依赖。问题是它对**跨函数边界的赋值**无能为力：
+
+```svelte
+<script>
+  let count = 0;
+  let doubled = 0;
+
+  function update() {
+    count += 1; // $: doubled = count * 2 不会重新执行这个依赖分析
+  }
+
+  $: doubled = count * 2;
+</script>
+```
+
+Svelte 5 改成运行期信号，依赖在读取时自动登记：
+
+```svelte
+<script>
+  let count = $state(0);
+  const doubled = $derived(count * 2);
+</script>
+```
+
+区别在于 `$derived` **不需要你声明依赖**。它在求值时读取了 `count`，于是自动订阅。
+
+## `$state` 的深层响应式有个边界
+
+`$state` 对数组和普通对象的修改是深度响应式的：
+
+```ts
+let todos = $state([{ text: '写博客', done: false }]);
+todos[0].done = true; // 会触发更新
+todos.push({ text: '部署', done: false }); // 也会
+```
+
+但**类实例不是**。类内部要显式用 `$state` 声明字段：
+
+```ts
+class Counter {
+  count = $state(0); // 必须这样写
+  increment() {
+    this.count += 1;
+  }
+}
+
+const counter = new Counter();
+counter.increment(); // 正常触发更新
+```
+
+如果写成 `count = 0` 再加 `$state` 包装整个实例，内部变更不会触发更新。这是迁移时最容易出错的地方。
+
+## 跨组件共享状态：用 runes 文件，不要用 store
+
+Svelte 4 的 `writable` store 在 Svelte 5 里仍然可用，但新的推荐做法是把状态放进 `.svelte.ts` 文件：
+
+```ts
+// src/lib/theme/theme.svelte.ts
+import { browser } from '$app/environment';
+
+export type ThemeChoice = 'light' | 'dark' | 'auto';
+
+let choice = $state<ThemeChoice>('auto'); // 模块级 $state
+
+export const theme = {
+  get choice() {
+    return choice;
+  },
+  set(next: ThemeChoice) {
+    choice = next;
+  },
+  cycle() {
+    choice = choice === 'auto' ? 'dark' : choice === 'dark' ? 'light' : 'auto';
+  }
+};
+```
+
+几个要点：
+
+1. 文件必须叫 `.svelte.ts`（或 `.svelte.js`），否则编译器不会处理其中的 `$state`。
+2. `$state` 不能直接 `export`，因为导出的是值而非引用。要包一层 getter。
+3. 模块级的 `$effect` 需要一个根作用域，否则会报错：
+
+```ts
+$effect.root(() => {
+  $effect(() => {
+    // 这里的副作用不会随组件销毁而销毁
+    document.documentElement.style.colorScheme = choice;
+  });
+});
+```
+
+## `$effect` 不是 `$:`
+
+这是最需要转变的观念。`$:` 可以表达两类东西：**派生值**和**副作用**。Svelte 5 把它们分开了：
+
+| 用途 | Svelte 4 | Svelte 5 |
+| --- | --- | --- |
+| 计算派生值 | `$: x = a + b` | `const x = $derived(a + b)` |
+| 同步到外部 | `$: localStorage.x = x` | `$effect(() => { ... })` |
+
+**能用 `$derived` 就不要用 `$effect`**。`$derived` 是纯计算，在 SSR 中也安全；`$effect` 只在浏览器中运行，在服务端渲染时会被跳过，且容易写出循环依赖。
+
+一个判断标准：如果这段逻辑是在「算出一个值」，用 `$derived`；只有在「与外部系统同步」（DOM、localStorage、网络）时才用 `$effect`。
+
+## `$props` 与 snippet
+
+组件入参从 `export let` 改为 `$props()`，解构时默认值写在解构里：
+
+```svelte
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+
+  interface Props {
+    variant?: 'elevated' | 'filled' | 'outlined';
+    children: Snippet;
+  }
+
+  let { variant = 'elevated', children }: Props = $props();
+</script>
+
+<div class="card {variant}">
+  {@render children()}
+</div>
+```
+
+内容插槽用 `Snippet` 类型 + `{@render}`，取代了 `<slot>`。具名插槽对应 snippet 类型的 props：
+
+```svelte
+<script lang="ts">
+  let { header, children }: { header?: Snippet; children: Snippet } = $props();
+</script>
+
+{@render header?.()}
+{@render children()}
+```
+
+## 一个真实的 hydration 陷阱
+
+用 `typeof window === 'undefined'` 或 `typeof localStorage === 'undefined'` 判断环境，在 SvelteKit 里是**不可靠的**。
+
+Node 22 之后，`localStorage` 正在成为全局对象；本站开发时用的 Node 26 就已经存在这个全局，只是未配置存储文件时会抛错。于是：
+
+```ts
+// 预渲染时这个判断会「通过」，然后在访问时抛错
+if (typeof localStorage !== 'undefined') {
+  localStorage.getItem('theme');
+}
+```
+
+SvelteKit 提供了明确的常量，应该用它：
+
+```ts
+import { browser, dev, building } from '$app/environment';
+
+if (browser) {
+  localStorage.getItem('theme');
+}
+```
+
+`browser` 在预渲染阶段是 `false`，在客户端是 `true`，且这个值在构建期就被替换成字面量，不会留下运行时判断开销。
+
+另外要注意：**服务端与客户端的首次渲染输出必须一致**，否则 hydration 会报错。所以不要在组件里写成：
+
+```svelte
+<!-- 错误：服务端渲染出的图标和客户端不一致 -->
+<Icon icon={typeof window !== 'undefined' && isDark ? moon : sun} />
+```
+
+正确做法是把状态放进 `$state`，用 `$derived` 计算展示值，让首屏两边的输入相同：
+
+```svelte
+<script>
+  import { browser } from '$app/environment';
+
+  let choice = $state(browser ? readStored() : 'auto');
+  const icon = $derived(choice === 'dark' ? moon : sun);
+</script>
+```
+
+## 迁移顺序建议
+
+如果要迁移一个现存项目，按这个顺序风险最低：
+
+1. 先升级到 Svelte 5，保留 legacy 语法（`runes` 不强制），确认项目能跑
+2. 逐个组件把 `export let` → `$props`、`<slot>` → `Snippet`
+3. 把 `$:` 拆成 `$derived` 与 `$effect`
+4. 把 store 换成 `.svelte.ts` 模块
+5. 最后在 `svelte.config.js` 里打开 `compilerOptions.runes = true` 强制新语法
+
+本站从一开始就用 `runes: true`，好处是**不可能**混入 legacy 写法，代价是所有第三方组件都必须兼容 runes——这也是选组件库时要先确认的事。

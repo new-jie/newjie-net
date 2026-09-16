@@ -1,0 +1,18 @@
+# 仓库内统一使用 LF。
+# 不设置的话，Windows 上 git 会把 LF 转成 CRLF，
+# 而 CI（Linux）与 Cloudflare 构建机都是 LF 环境，容易产生无意义的整文件 diff。
+* text=auto eol=lf
+
+# 二进制文件不要做换行转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# lock 文件在 diff 里折叠显示
+package-lock.json -diff linguist-generated

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 只做质量校验，不做部署。
+# 部署由 Cloudflare Workers Builds 负责（它自己会构建并 wrangler deploy），
+# 如果这里也部署一次，同一次 push 会触发两遍部署、互相覆盖。
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 图标名校验：写错图标名时 Rollup 只会说「解析失败」，不告诉你哪个变体缺失
+      - name: 校验图标
+        run: npm run check:icons
+
+      # 锚点校验：目录链接与正文标题 id 不一致时页面不报错，只是点了没反应
+      - name: 校验锚点
+        run: npm run check:anchors
+
+      - name: 类型检查
+        run: npm run check
+
+      - name: 构建
+        run: npm run build
+        env:
+          SITE_ORIGIN: https://www.newjie.net
+
+      # 纯静态站的关键产物，缺任何一个都说明预渲染没跑对
+      - name: 校验构建产物
+        run: |
+          set -e
+          for f in index.html 404/index.html rss.xml sitemap.xml robots.txt llms.txt llms-full.txt search-index.json; do
+            if [ ! -f "build/$f" ]; then
+              echo "::error::缺少构建产物 build/$f"
+              exit 1
+            fi
+          done
+          # 文章页必须至少生成一个（验证 entries() 生效）
+          count=$(find build/posts -name index.html | wc -l)
+          echo "生成文章页 $count 个"
+          if [ "$count" -lt 1 ]; then
+            echo "::error::没有生成任何文章页，检查 import.meta.glob 是否匹配为空"
+            exit 1
+          fi
+
+      - name: 检查依赖 peer 冲突
+        run: npm ls --all > /dev/null

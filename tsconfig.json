@@ -1,0 +1,21 @@
+{
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
+		"strict": true,
+		"moduleResolution": "bundler",
+
+		// src/lib/rehype-heading-ids.js 需要 import './slug.ts'：
+		// 该文件由 svelte.config.js 经 Node 直接加载，Node 的 ESM 解析要求
+		// 显式写出 .ts 扩展名，因此这里必须允许带扩展名的 TS 导入。
+		// 只在 noEmit 场景下合法，而 svelte-check 不做产出，所以安全。
+		"allowImportingTsExtensions": true,
+		"noEmit": true
+	}
+}

@@ -1,0 +1,149 @@
+---
+title: 为什么我把博客做成了纯静态站
+description: 从架构取舍讲起：静态与动态的分界线画在哪里，成本与攻击面如何随之改变，以及 SvelteKit 如何让两者共存。
+date: 2026-09-14
+tags: [架构, SvelteKit, Cloudflare]
+pinned: true
+---
+
+这个博客**没有数据库、没有服务端运行时、没有登录系统**。构建产物是一堆 HTML 文件，直接躺在 Cloudflare 的全球边缘网络上。
+
+这不是偷懒，是一系列明确的取舍。这篇文章把分界线画在哪里、为什么画在那里讲清楚。
+
+## 静态与动态的分界线
+
+一个博客的功能可以拆成两类：
+
+**内容类**——文章、标签、归档、RSS、站点地图。这些数据在**写作时**就确定了，读者无论何时访问，看到的内容都一样。它们不需要服务器参与。
+
+**交互类**——评论、浏览量、点赞、后台编辑。这些数据在**阅读时**才产生，每个读者看到的不同。它们必须有服务端。
+
+关键洞察是：**绝大多数博客 90% 的流量打在内容类页面上**。把这一类做成静态，等于让 90% 的请求根本不碰服务器。
+
+## 成本结构因此改变
+
+Cloudflare Workers 的计费逻辑里有一条决定性规则：
+
+> Requests are only billable if a Worker script is invoked.
+
+请求只有**触发 Worker 脚本**才计费。纯静态站没有 Worker 脚本，所有请求都由静态资源层直接返回。结果是：
+
+| | 静态站 | 混合站 |
+| --- | --- | --- |
+| 每篇文章的请求 | 边缘直出，0ms 冷启动 | 可能触发 Worker |
+| 免费额度风险 | 结构性不存在 | 取决于流量与实现 |
+| 数据库 | 无 | 需要迁移、备份、连接管理 |
+| 攻击面 | 几乎为零 | 表单、认证、注入 |
+
+「几乎为零」不是修辞。没有服务端代码，就没有可以注入的查询、可以绕过的认证、可以耗尽的连接池。
+
+## SvelteKit 让两者不必二选一
+
+SvelteKit 的渲染开关是**按路由粒度**的，不是全局的：
+
+```ts
+// src/routes/+layout.ts —— 全站默认预渲染
+export const prerender = true;
+export const trailingSlash = 'always';
+```
+
+这三行让所有页面在构建期生成 HTML。而如果将来想加一个动态接口，只需在对应路由里关掉它：
+
+```ts
+// src/routes/api/comments/+server.ts
+export const prerender = false; // 这个端点走运行时
+```
+
+所以「纯静态」是一个**当前状态**，不是架构上的死路。想加评论时，换一个 adapter、加一段配置即可，路由结构不用动。
+
+## 预渲染不是「不渲染」
+
+一个常见误解是：预渲染 = 放弃服务端渲染。事实正相反。
+
+`ssr`、`csr`、`prerender` 是三个不同层次的概念：
+
+| 选项 | 默认值 | 含义 |
+| --- | --- | --- |
+| `ssr` | `true` | 服务端渲染页面 |
+| `csr` | `true` | 浏览器接管（hydrate） |
+| `prerender` | `false` | 在构建期固化成文件 |
+
+预渲染的页面，恰恰是**通过 SSR 生成的**——只不过那个「服务器」是构建期的 Node 进程，而不是线上的 Worker。
+
+三者全开的效果是：构建期用 SSR 产出完整 HTML → 浏览器加载 JS 后 hydrate → 之后的导航由客户端路由接管。这是静态站性能与体验兼得的正常形态。
+
+唯一要永远避免的是 `ssr = false`：那会渲染出一个空壳，SEO 归零。
+
+## entries() 只对动态路由有意义
+
+静态路由（`/`、`/archive/`）SvelteKit 会自动发现。但动态路由 `[slug]` 无法被枚举，必须显式告知：
+
+```ts
+// src/routes/posts/[slug]/+page.ts
+import { getPosts } from '$lib/content';
+
+export const prerender = true;
+
+export function entries() {
+  return getPosts().map((post) => ({ slug: post.slug }));
+}
+```
+
+这段代码返回的每个对象都会生成一个页面。漏写它，该路由一个页面都不会产出——而且 `adapter-static` 的 `strict: true`（默认开启）会**直接让构建失败**，正好抓出这类疏忽。
+
+> 建议保留 `strict: true`。它是纯静态方案里唯一的护栏，关掉它意味着漏掉的路由会静默消失。
+
+## 那些看似动态的东西，也可以静态
+
+RSS、站点地图、`robots.txt`，以及 `/llms.txt` 这类给大模型看的索引，全都可以是**构建期生成的静态文件**。做法是在 SvelteKit 里用端点路由：
+
+```
+src/routes/rss.xml/+server.ts       →  GET 返回 RSS
+src/routes/sitemap.xml/+server.ts   →  GET 返回 XML
+src/routes/llms.txt/+server.ts      →  GET 返回纯文本
+src/routes/search-index.json/+server.ts → GET 返回 JSON
+```
+
+有个容易搞混的点：**`/rss.xml` 返回 XML，不是因为文件名带了 `.xml`**。路由段名只决定 URL 路径，与 MIME 无关。必须显式设置响应头：
+
+```ts
+return new Response(xml, {
+  headers: { 'content-type': 'application/xml; charset=utf-8' }
+});
+```
+
+不设这一行，浏览器会把 RSS 当纯文本显示出来。
+
+## 代价是什么
+
+诚实地说，纯静态也有代价：
+
+- **发布必须重新构建**。改一个错别字要跑一次完整构建。对个人博客这无所谓，对协作频繁的团队就是问题。
+- **无法按读者定制**。没有服务端，就没有「根据登录状态显示不同内容」，除非退化成客户端渲染。
+- **文章数量有上限**。所有文章都编译进 JS bundle，几千篇之后构建时间和体积都会成问题。到那时再迁到运行时读取是合理选择。
+
+本站目前的取舍是：接受这些代价，换取零运维与结构性的低成本。
+
+## 部署配置的一个坑
+
+纯静态站部署到 Cloudflare Workers 时，`trailingSlash` 与 `html_handling` **必须成对配置**，配错的表现是大量 404：
+
+```jsonc
+// wrangler.jsonc
+{
+  "assets": {
+    "directory": "./build",
+    "not_found_handling": "404-page",
+    "html_handling": "force-trailing-slash"
+  }
+}
+```
+
+对应关系是这样的：
+
+| SvelteKit `trailingSlash` | 产物形态 | Cloudflare `html_handling` |
+| --- | --- | --- |
+| `'never'`（默认） | `posts/foo.html` | `auto-trailing-slash` |
+| `'always'` | `posts/foo/index.html` | **`force-trailing-slash`** |
+
+Cloudflare 的 `auto-trailing-slash` 规则是「文件不带斜杠、目录索引带斜杠」，它并不理解 `trailingSlash: 'always'` 的语义。所以选了 `'always'` 就必须显式改成 `force-trailing-slash`，否则带斜杠的 URL 会全部落空。
