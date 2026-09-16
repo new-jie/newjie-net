@@ -37,23 +37,10 @@ jobs:
         env:
           SITE_ORIGIN: https://www.newjie.net
 
-      # 纯静态站的关键产物，缺任何一个都说明预渲染没跑对
+      # 纯静态站的关键产物 + 提示框渲染校验。
+      # 预渲染出问题的表现往往是「某个页面悄悄没生成」而不是报错，必须显式检查。
       - name: 校验构建产物
-        run: |
-          set -e
-          for f in index.html 404/index.html rss.xml sitemap.xml robots.txt llms.txt llms-full.txt search-index.json; do
-            if [ ! -f "build/$f" ]; then
-              echo "::error::缺少构建产物 build/$f"
-              exit 1
-            fi
-          done
-          # 文章页必须至少生成一个（验证 entries() 生效）
-          count=$(find build/posts -name index.html | wc -l)
-          echo "生成文章页 $count 个"
-          if [ "$count" -lt 1 ]; then
-            echo "::error::没有生成任何文章页，检查 import.meta.glob 是否匹配为空"
-            exit 1
-          fi
+        run: npm run check:artifacts
 
       - name: 检查依赖 peer 冲突
         run: npm ls --all > /dev/null

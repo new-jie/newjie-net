@@ -75,26 +75,83 @@ npm run preview:cf     # 用 workerd 本地预览真实运行时行为
 
 ## 写文章
 
-在 `src/content/posts/` 下新建 `.svx` 文件即可，无需改任何代码。
+在 `src/content/posts/` 下新建一个 `.svx` 文件即可，**不需要改任何代码**。文件名随意（建议用英文，便于在编辑器里识别），URL 由 frontmatter 决定。
+
+### frontmatter
 
 ```yaml
 ---
-title: 文章标题
-description: 摘要，用于列表页、SEO 与 llms.txt
-date: 2026-09-16
-tags: [SvelteKit, 架构]
-slug: custom-url-slug        # 可选；不填则由标题生成
-updated: 2026-09-20          # 可选
-draft: false                 # true 则只在 dev 环境可见
-pinned: false                # true 则首页置顶
+title: 文章标题                                  # 必填，最长 120 字
+description: 摘要，用于列表页、SEO 与 llms.txt   # 必填，最长 300 字
+date: 2026-09-16                                 # 必填，严格 YYYY-MM-DD
+tags: [SvelteKit, 架构]                          # 可选，自动去重
+slug: custom-url-slug                            # 可选，见下方说明
+updated: 2026-09-20                              # 可选
+draft: false                                     # 可选，true 则只在 npm run dev 时可见
+pinned: false                                    # 可选，true 则首页置顶
 ---
 ```
 
-正文是标准 Markdown，可以直接内嵌 Svelte 组件。标题会自动获得锚点 id，无需手写。
+**关于 `slug`**：不填就由标题生成。中文标题会保留中文字符，URL 里以百分号编码出现（例如 `/posts/为什么我把博客做成了纯静态站/`），浏览器地址栏会显示成可读的中文。想让 URL 是纯 ASCII 就显式写 `slug`——只能用**小写字母、数字、连字符**，且不能以连字符开头或结尾。
 
-**frontmatter 会被 zod 校验**：字段写错、日期格式不对、slug 重复，构建期直接失败并指出文件与字段名，不会静默上线。
+**校验是硬性的**：字段缺失、日期格式不对、slug 格式非法或与其它文章重复，`npm run build` 会直接失败并指出文件名与字段名。这是刻意的——宁可不让你发出去，也不要带着坏数据上线。
+
+### 正文语法
+
+正文就是**标准 Markdown**，加上一个自定义的提示框语法：
+
+```markdown
+> [!NOTE]
+> 补充说明，不影响主流程。
+
+> [!TIP]
+> 更省事的做法。
+
+> [!IMPORTANT]
+> 读者跳过可能会出错的关键信息。
+
+> [!WARNING]
+> 继续操作有风险。
+
+> [!CAUTION]
+> 不可逆后果的强调。
+
+> 这是一个普通引用块，不会被转成提示框。
+```
+
+五种提示框分别映射到不同的 MD3 语义色，明暗主题下都自动正确。**没有任何 Svelte 语法要学。**
+
+其它已支持并验证过的：标题（自动生成锚点 + 目录）、代码块（横向滚动、不折行）、表格（窄屏横向滚动）、引用块、图片、行内代码、链接。
 
 阅读时长按 `CJK 字符数 / 400 + 拉丁词数 / 200` 计算——直接用 `reading-time` 之类的库会把整段中文当成一个单词，算出「1 分钟」这种明显错误的值。
+
+### 发布流程
+
+```bash
+npm run dev            # 1. 本地写，实时预览（草稿也会显示）
+
+npm run verify         # 2. 提交前自检：图标 / 锚点 / 类型 / 构建
+
+git add -A             # 3. 推送
+git commit -m "post: 文章标题"
+git push
+```
+
+推送到 `main` 后 Cloudflare Workers Builds 会自动构建并部署，通常一两分钟上线。
+
+草稿阶段建议写 `draft: true`：本地 `npm run dev` 能看到，但**不会**出现在生产构建里，可以放心推送。
+
+### 一件不需要知道的事
+
+值得说清楚，因为很容易被误导：`.svx` 文件**技术上支持完整的 Svelte 语法**——`<script>` 块、`$state`、`{#each}` 都能编译运行，我实测确认过。
+
+但**不要用它**。原因有三：
+
+- `src/lib/components/` 里全是布局组件（导航、目录、卡片），没有一个是设计给文章内嵌的；
+- 把 Svelte 语法混进散文会毁掉「这就是一个 markdown 文件」这个最重要的性质——以后想换渲染器、或让别的工具处理这些文件，都会被卡住；
+- 像提示框这类需求，上面的 Markdown 语法就够了，不需要写组件。
+
+需要新的文章内元素时，正确做法是**扩展 Markdown 语法**（像 `src/lib/remark-callouts.js` 那样加一个 remark 插件），而不是在文章里写 Svelte。
 
 ---
 

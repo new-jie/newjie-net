@@ -17,6 +17,8 @@
     "gen:theme": "node scripts/gen-theme.mjs",
     "check:icons": "node scripts/check-icons.mjs",
     "check:anchors": "node scripts/check-anchors.mjs",
+    "check:callouts": "node scripts/check-callouts.mjs",
+    "check:artifacts": "node scripts/check-artifacts.mjs",
     "verify": "npm run check:icons && npm run check:anchors && npm run check && npm run build",
     "deploy": "npm run build && wrangler deploy",
     "deploy:dry": "npm run build && wrangler deploy --dry-run"

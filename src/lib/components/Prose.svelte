@@ -176,6 +176,61 @@
 		border-top: 1px solid var(--m3c-outline-variant);
 	}
 
+	/* ---- 提示框（> [!NOTE] 语法，由 src/lib/remark-callouts.js 生成） ----
+	   每种类型映射到不同的 MD3 语义色对角，而不是硬编码颜色，
+	   因此换种子色时提示框会跟着变，明暗主题也自动正确。 */
+
+	.prose :global(.callout) {
+		margin: 1.5em 0;
+		padding: 0.875em 1.125em;
+		border-left: 3px solid var(--callout-accent);
+		border-radius: 0 var(--m3-shape-medium) var(--m3-shape-medium) 0;
+		background-color: var(--callout-bg);
+		color: var(--callout-fg);
+	}
+
+	.prose :global(.callout > *:last-child) {
+		margin-bottom: 0;
+	}
+
+	.prose :global(.callout-title) {
+		margin: 0 0 0.375em;
+		font-weight: 650;
+		font-size: 0.9375rem;
+		color: var(--callout-accent);
+	}
+
+	/* 说明：中性信息，用主色系里最弱的一档 */
+	.prose :global(.callout-note) {
+		--callout-accent: var(--m3c-primary);
+		--callout-bg: var(--m3c-primary-container-subtle);
+		--callout-fg: var(--m3c-on-surface);
+	}
+
+	/* 提示：正向建议，用强调色的柔和容器 */
+	.prose :global(.callout-tip) {
+		--callout-accent: var(--m3c-tertiary);
+		--callout-bg: var(--m3c-tertiary-container-subtle);
+		--callout-fg: var(--m3c-on-surface);
+	}
+
+	/* 重要：需要读者特别注意，用中性的辅助色系避免与警告混淆 */
+	.prose :global(.callout-important) {
+		--callout-accent: var(--m3c-secondary);
+		--callout-bg: var(--m3c-secondary-container-subtle);
+		--callout-fg: var(--m3c-on-surface);
+	}
+
+	/* 警告 / 注意：用错误色系，但底色用 subtle 版本避免过于刺眼 */
+	.prose :global(.callout-warning),
+	.prose :global(.callout-caution) {
+		--callout-accent: var(--m3c-error);
+		--callout-bg: var(--m3c-error-container-subtle);
+		--callout-fg: var(--m3c-on-error-container-subtle);
+	}
+
+	/* ---- 图片 ---- */
+
 	.prose :global(img) {
 		max-width: 100%;
 		height: auto;

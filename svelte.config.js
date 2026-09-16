@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import { mdsvex } from 'mdsvex';
 import { rehypeHeadingIds } from './src/lib/rehype-heading-ids.js';
+import { remarkCallouts } from './src/lib/remark-callouts.js';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -9,9 +10,10 @@ const config = {
 	preprocess: [
 		mdsvex({
 			extensions: ['.svx'],
-			// 给标题加 id，否则目录里的 #anchor 链接会失效。
-			// 注意这里直接 import 项目内的 .ts：svelte.config.js 由 Vite 加载，
-			// 所以走的是项目的 TS 转译链，不需要额外构建步骤。
+			// remark 在 markdown AST 阶段运行，用于扩展语法（> [!NOTE] 提示框）
+			remarkPlugins: [remarkCallouts],
+			// rehype 在 HTML AST 阶段运行，用于给标题加 id。
+			// 没有它目录里的 #anchor 链接会全部失效。
 			rehypePlugins: [rehypeHeadingIds]
 		})
 	],
